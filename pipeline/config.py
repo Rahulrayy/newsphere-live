@@ -53,7 +53,8 @@ RESEND_API_KEY            = os.environ.get("RESEND_API_KEY")
 RESEND_AUDIENCE_ID        = os.environ.get("RESEND_AUDIENCE_ID")
 RESEND_FROM_EMAIL         = os.environ.get("RESEND_FROM_EMAIL", "digest@example.com")
 
-CLOUDFLARE_WORKER_URL     = os.environ.get(
+CLOUDFLARE_WORKER_URL = os.environ.get(
     "CLOUDFLARE_WORKER_URL",
-    "https://newsphere-subscribe.YOUR_SUBDOMAIN.workers.dev",
+    "https://newsphere-subscribe.rahulraypm2002.workers.dev",
+)
 )
