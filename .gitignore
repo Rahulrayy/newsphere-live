@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+pipeline/embeddings.npy
+pipeline/articles.json
+
+.idea/
+.DS_Store
+
+.env
+
+PROPOSAL.md
