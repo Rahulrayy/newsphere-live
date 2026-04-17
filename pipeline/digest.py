@@ -244,9 +244,8 @@ def send_email_digest(d):
         print("Resend credentials not configured, skipping email")
         return
 
-    subject  = (f"Newsphere Live -- {d['n_clusters']} topics, "
+    subject  = (f"Newsphere Live - {d['n_clusters']} topics, "
                 f"{d['n_new']} new articles today")
-    date_str = d["generated_at"][:10]
     html     = generate_html(d, for_email=True)
 
     headers = {
@@ -255,28 +254,37 @@ def send_email_digest(d):
     }
 
     try:
-        resp = requests.post(
-            "https://api.resend.com/broadcasts",
+        # fetch all contacts from the audience
+        resp = requests.get(
+            f"https://api.resend.com/audiences/{RESEND_AUDIENCE_ID}/contacts",
             headers=headers,
-            json={
-                "audience_id": RESEND_AUDIENCE_ID,
-                "from":        RESEND_FROM_EMAIL,
-                "subject":     subject,
-                "html":        html,
-                "name":        f"digest-{date_str}",
-            },
             timeout=30,
         )
         resp.raise_for_status()
-        broadcast_id = resp.json()["id"]
+        contacts = resp.json().get("data", [])
+        subscribed = [c["email"] for c in contacts if not c.get("unsubscribed", False)]
 
-        resp = requests.post(
-            f"https://api.resend.com/broadcasts/{broadcast_id}/send",
-            headers=headers,
-            timeout=30,
-        )
-        resp.raise_for_status()
-        print(f"email digest sent via Resend broadcast {broadcast_id}")
+        if not subscribed:
+            print("no subscribers yet, skipping email send")
+            return
+
+        # send to each subscriber individually
+        for email in subscribed:
+            r = requests.post(
+                "https://api.resend.com/emails",
+                headers=headers,
+                json={
+                    "from":    "Newsphere Live <onboarding@resend.dev>",
+                    "to":      [email],
+                    "subject": subject,
+                    "html":    html,
+                },
+                timeout=30,
+            )
+            r.raise_for_status()
+            print(f"sent digest to {email}")
+
+        print(f"digest sent to {len(subscribed)} subscribers")
 
     except requests.HTTPError as e:
         print(f"Resend API error {e.response.status_code}: {e.response.text}")
