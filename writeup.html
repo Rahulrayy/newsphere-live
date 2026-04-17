@@ -284,7 +284,7 @@
         <tr><td>Pipeline execution</td><td>Manual, Colab</td><td>GitHub Actions, daily cron</td></tr>
         <tr><td>Update frequency</td><td>Never</td><td>Every day at 02:00 UTC</td></tr>
         <tr><td>Backend</td><td>None</td><td>None</td></tr>
-        <tr><td>Recurring cost</td><td>£0</td><td>£0</td></tr>
+        <tr><td>Recurring cost</td><td>€0</td><td>€0</td></tr>
       </tbody>
     </table>
   </div>
@@ -368,12 +368,12 @@
 
     <p><strong>Two-pass deduplication</strong></p>
     <p>
-      Cross-publisher coverage of the same event is the main data quality problem. Reuters' 
-      "Fed holds rates steady" and the BBC's "Federal Reserve keeps interest rates unchanged" 
-      are the same story and should collapse to one point on the map. A single exact-title pass 
-      catches same-publisher re-posts; it misses the main case entirely. The second pass runs 
-      after embedding: articles with cosine similarity above 0.87 are collapsed, with the longer-description 
-      version kept as canonical and an <code>also_covered_by</code> list appended. This list is then surfaced 
+      Cross-publisher coverage of the same event is the main data quality problem. Reuters'
+      "Fed holds rates steady" and the BBC's "Federal Reserve keeps interest rates unchanged"
+      are the same story and should collapse to one point on the map. A single exact-title pass
+      catches same-publisher re-posts; it misses the main case entirely. The second pass runs
+      after embedding: articles with cosine similarity above 0.87 are collapsed, with the longer-description
+      version kept as canonical and an <code>also_covered_by</code> list appended. This list is then surfaced
       in the UI. The breadth of coverage across outlets is itself a useful signal worth surfacing.
     </p>
 
@@ -418,48 +418,48 @@
         <tr>
           <td>ML pipeline compute</td>
           <td>GitHub Actions (public repo)</td>
-          <td class="cost-free">£0 / unlimited</td>
+          <td class="cost-free">€0 / unlimited</td>
           <td>Public repos are unmetered; private repos cap at 2,000 min/month</td>
         </tr>
         <tr>
           <td>Static hosting</td>
           <td>GitHub Pages</td>
-          <td class="cost-free">£0</td>
+          <td class="cost-free">€0</td>
           <td>Netlify/Vercel free tiers have bandwidth caps</td>
         </tr>
         <tr>
           <td>News data</td>
           <td>RSS feeds</td>
-          <td class="cost-free">£0 / no auth</td>
+          <td class="cost-free">€0 / no auth</td>
           <td>NewsAPI free tier: headlines only, key required; GDELT: cleaning overhead</td>
         </tr>
         <tr>
           <td>Email delivery</td>
           <td>Resend (free tier)</td>
-          <td class="cost-free">£0 / 100 emails/day</td>
+          <td class="cost-free">€0 / 100 emails/day</td>
           <td>Raw Gmail SMTP: app passwords deprecated, lands in spam</td>
         </tr>
         <tr>
           <td>Subscriber storage</td>
           <td>Resend Audiences</td>
-          <td class="cost-free">£0</td>
+          <td class="cost-free">€0</td>
           <td>Avoids storing email addresses in a public repository entirely</td>
         </tr>
         <tr>
           <td>Bot protection</td>
           <td>Cloudflare Turnstile</td>
-          <td class="cost-free">£0 / unlimited</td>
+          <td class="cost-free">€0 / unlimited</td>
           <td>reCAPTCHA v3 requires Google account for dashboard; hCaptcha free tier limits</td>
         </tr>
         <tr>
           <td>Subscribe endpoint</td>
           <td>Cloudflare Workers (free tier)</td>
-          <td class="cost-free">£0 / 100K req/day</td>
+          <td class="cost-free">€0 / 100K req/day</td>
           <td>Required to keep the Resend API key off the client; no other serverless option at zero cost with this key model</td>
         </tr>
         <tr class="cost-total">
           <td colspan="2"><strong>Total monthly cost</strong></td>
-          <td class="cost-free">£0</td>
+          <td class="cost-free">€0</td>
           <td></td>
         </tr>
       </tbody>
