@@ -532,7 +532,7 @@
           Get daily digest
         </button>
       </div>
-      <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITE_KEY"
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAC_C9Hjc_bRgoYqwA3hF22aGfAE"
            data-callback="onTurnstileSuccess" data-theme="light"></div>
       <div id="subscribe-status" style="font-size:12px; color:#888; margin-top:8px;"></div>
     </div>
@@ -571,7 +571,7 @@
         btn.disabled = true;
         btn.textContent = 'Subscribing...';
         try {
-          const r = await fetch('YOUR_WORKER_URL', {
+          const r = await fetch('https://newsphere-subscribe.rahulraypm2002.workers.dev', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, turnstileToken, honeypot: honey }),
