@@ -89,83 +89,76 @@ def generate_html(d, for_email=False):
         </div>"""
 
     subscribe_section = "" if for_email else """
-    <div style="background: white; border: 0.5px solid #e0e0e0; border-radius: 10px;
-                padding: 20px; margin-top: 32px;">
-      <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
-        <input type="email" id="email-input" placeholder="your@email.com"
-               autocomplete="email"
-               style="flex: 1; font-size: 13px; padding: 8px 12px;
-                      border: 0.5px solid #e0e0e0; border-radius: 6px;
-                      background: #f9f9f7; color: #1a1a1a;" />
-        <input type="text" id="website" name="website" tabindex="-1"
-               autocomplete="off"
-               style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;" />
-        <button id="subscribe-btn" onclick="subscribe()"
-                style="font-size: 13px; padding: 8px 16px; border: 0.5px solid #4e79a7;
-                       border-radius: 6px; background: #4e79a7; color: white; cursor: pointer;">
-          Get daily digest
-        </button>
-      </div>
-      <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITE_KEY"
-           data-callback="onTurnstileSuccess" data-theme="light"></div>
-      <div id="subscribe-status" style="font-size:12px; color:#888; margin-top:8px;"></div>
-    </div>
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-    <script>
-      let turnstileToken = null;
-      let lastAttempt = 0;
-      function onTurnstileSuccess(token) { turnstileToken = token; }
-      function setStatus(msg, isError) {
-        const el = document.getElementById('subscribe-status');
-        el.textContent = msg;
-        el.style.color = isError ? '#c0392b' : '#888';
-      }
-      async function subscribe() {
-        const btn   = document.getElementById('subscribe-btn');
-        const email = document.getElementById('email-input').value.trim();
-        const honey = document.getElementById('website').value;
-        if (honey) {
-          setStatus('Subscribed. You will receive your first digest tomorrow morning.', false);
-          return;
-        }
-        if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
-          setStatus('That does not look like a valid email address.', true);
-          return;
-        }
-        const now = Date.now();
-        if (now - lastAttempt < 3000) {
-          setStatus('Please wait a moment before trying again.', true);
-          return;
-        }
-        lastAttempt = now;
-        if (!turnstileToken) {
-          setStatus('Please complete the verification and try again.', true);
-          return;
-        }
-        btn.disabled = true;
-        btn.textContent = 'Subscribing...';
-        try {
-          const r = await fetch('YOUR_WORKER_URL', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, turnstileToken, honeypot: honey }),
-          });
-          if (r.ok) {
-            setStatus('Subscribed. You will receive your first digest tomorrow morning.', false);
-            document.getElementById('email-input').value = '';
-          } else {
-            setStatus('Something went wrong. Please try again later.', true);
+        <div style="background: white; border: 0.5px solid #e0e0e0; border-radius: 10px;
+                    padding: 20px; margin-top: 32px;">
+          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
+            <input type="email" id="email-input" placeholder="your@email.com"
+                   autocomplete="email"
+                   style="flex: 1; font-size: 13px; padding: 8px 12px;
+                          border: 0.5px solid #e0e0e0; border-radius: 6px;
+                          background: #f9f9f7; color: #1a1a1a;" />
+            <input type="text" id="website" name="website" tabindex="-1"
+                   autocomplete="off"
+                   style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;" />
+            <button id="subscribe-btn" onclick="subscribe()"
+                    style="font-size: 13px; padding: 8px 16px; border: 0.5px solid #4e79a7;
+                           border-radius: 6px; background: #4e79a7; color: white; cursor: pointer;">
+              Get daily digest
+            </button>
+          </div>
+          <div id="subscribe-status" style="font-size:12px; color:#888; margin-top:8px;"></div>
+        </div>
+        <script>
+          let lastAttempt = 0;
+
+          function setStatus(msg, isError) {
+            const el = document.getElementById('subscribe-status');
+            el.textContent = msg;
+            el.style.color = isError ? '#c0392b' : '#888';
           }
-        } catch (e) {
-          setStatus('Network error. Please try again.', true);
-        } finally {
-          btn.disabled = false;
-          btn.textContent = 'Get daily digest';
-          turnstileToken = null;
-          if (window.turnstile) window.turnstile.reset();
-        }
-      }
-    </script>"""
+
+          async function subscribe() {
+            const btn   = document.getElementById('subscribe-btn');
+            const email = document.getElementById('email-input').value.trim();
+            const honey = document.getElementById('website').value;
+
+            if (honey) {
+              setStatus('Subscribed. You will receive your first digest tomorrow morning.', false);
+              return;
+            }
+            if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+              setStatus('That does not look like a valid email address.', true);
+              return;
+            }
+            const now = Date.now();
+            if (now - lastAttempt < 3000) {
+              setStatus('Please wait a moment before trying again.', true);
+              return;
+            }
+            lastAttempt = now;
+
+            btn.disabled = true;
+            btn.textContent = 'Subscribing...';
+            try {
+              const r = await fetch('https://newsphere-subscribe.rahulraypm2002.workers.dev', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, honeypot: honey }),
+              });
+              if (r.ok) {
+                setStatus('Subscribed. You will receive your first digest tomorrow morning.', false);
+                document.getElementById('email-input').value = '';
+              } else {
+                setStatus('Something went wrong. Please try again later.', true);
+              }
+            } catch (e) {
+              setStatus('Network error. Please try again.', true);
+            } finally {
+              btn.disabled = false;
+              btn.textContent = 'Get daily digest';
+            }
+          }
+        </script>"""
 
     nav = "" if for_email else """
   <nav style="position:fixed; top:0; left:0; right:0; height:48px; background:white;

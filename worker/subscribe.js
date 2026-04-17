@@ -21,7 +21,7 @@ export default {
       return jsonResp({ error: "invalid json" }, 400, origin, allowed);
     }
 
-    const { email, turnstileToken, honeypot } = body;
+    const { email, honeypot } = body;
 
     if (honeypot) {
       return jsonResp({ ok: true }, 200, origin, allowed);
@@ -29,22 +29,6 @@ export default {
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return jsonResp({ error: "invalid email" }, 400, origin, allowed);
-    }
-
-    const tsResp = await fetch(
-      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          secret:   env.TURNSTILE_SECRET_KEY,
-          response: turnstileToken,
-        }),
-      }
-    );
-    const { success } = await tsResp.json();
-    if (!success) {
-      return jsonResp({ error: "turnstile verification failed" }, 403, origin, allowed);
     }
 
     const rsResp = await fetch(
