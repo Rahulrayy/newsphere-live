@@ -8,231 +8,219 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:      #f5f5f2;
+      --bg:      #f9f9f7;
       --surface: #ffffff;
       --border:  #e4e4e0;
       --text:    #1a1a1a;
-      --muted:   #888884;
+      --muted:   #999;
       --accent:  #4e79a7;
       --new:     #3a8a40;
-      --mono:    'DM Mono', monospace;
-      --sans:    'DM Sans', sans-serif;
-      --shadow:  0 2px 12px rgba(0,0,0,0.07);
+      --shadow:  0 2px 8px rgba(0,0,0,0.07);
     }
 
     * { margin:0; padding:0; box-sizing:border-box; }
 
     body {
+      font-family: 'DM Sans', -apple-system, sans-serif;
       background: var(--bg);
       color: var(--text);
-      font-family: var(--sans);
       overflow: hidden;
-      height: 100vh; width: 100vw;
     }
 
-    #canvas { display:block; width:100vw; height:100vh; }
-
-    /* nav */
+    /* ── nav ── */
     nav {
       position: fixed; top:0; left:0; right:0; height:48px;
-      background: rgba(245,245,242,0.92);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      border-bottom: 0.5px solid var(--border);
       display: flex; align-items: center;
-      padding: 0 24px; gap: 24px; z-index: 100;
+      padding: 0 32px; gap: 24px; z-index: 100;
     }
     .nav-brand {
-      font-family: var(--mono); font-size:12px;
-      color: var(--text); letter-spacing:0.08em; text-decoration:none;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px; letter-spacing: 0.08em;
+      color: var(--text); text-decoration: none;
     }
-    .nav-links { display:flex; gap:20px; margin-left:auto; align-items:center; }
-    .nav-links a {
-      font-size:12px; color:var(--muted); text-decoration:none; transition:color 0.2s;
-    }
+    .nav-links { display:flex; gap:20px; margin-left:auto; }
+    .nav-links a { font-size:13px; color:var(--muted); text-decoration:none; transition:color 0.2s; }
     .nav-links a:hover, .nav-links a.active { color:var(--text); }
     #last-updated {
-      font-family:var(--mono); font-size:11px; color:var(--muted);
-      margin-left:16px; padding-left:16px; border-left:1px solid var(--border);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px; color: var(--muted);
+      margin-left: 16px; padding-left: 16px;
+      border-left: 0.5px solid var(--border);
     }
 
-    /* legend */
+    /* ── loader ── */
+    #loader {
+      position: fixed; inset: 0; background: var(--bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 14px; z-index: 300;
+    }
+    #loader-spinner {
+      width: 28px; height: 28px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    #loader-text { font-size: 12px; color: var(--muted); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── tooltip ── */
+    #tooltip {
+      position: fixed; display: none;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 8px; padding: 10px 14px;
+      max-width: 280px; pointer-events: none;
+      box-shadow: var(--shadow); z-index: 200;
+    }
+    .t-source  { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); margin-bottom:4px; display:flex; align-items:center; gap:6px; }
+    .t-title   { font-size: 13px; font-weight: 500; line-height: 1.4; margin-bottom: 4px; }
+    .t-meta    { font-size: 11px; color: var(--muted); }
+    .t-cluster { font-size: 11px; color: #555; margin-top: 4px; display:flex; align-items:center; gap:5px; }
+    .t-cluster-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+    .t-new-badge {
+      background: var(--new); color:#fff;
+      font-size: 9px; padding: 1px 4px; border-radius: 3px;
+    }
+
+    /* ── left legend ── */
     #legend {
-      position:fixed; top:64px; left:16px; width:210px;
-      background:var(--surface); border:1px solid var(--border);
-      border-radius:10px; padding:14px; z-index:50;
-      max-height:calc(100vh - 140px); overflow-y:auto;
-      box-shadow:var(--shadow);
+      position: fixed; top: 64px; left: 16px; width: 210px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 10px; padding: 14px;
+      max-height: calc(100vh - 140px); overflow-y: auto;
+      box-shadow: var(--shadow); z-index: 100;
     }
-    #legend::-webkit-scrollbar { width:3px; }
-    #legend::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
-
+    #legend::-webkit-scrollbar { width: 3px; }
+    #legend::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
     .panel-title {
-      font-family:var(--mono); font-size:9px; color:var(--muted);
-      letter-spacing:0.1em; text-transform:uppercase; margin-bottom:12px;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px; color: var(--muted);
+      letter-spacing: 0.1em; text-transform: uppercase;
+      margin-bottom: 10px;
     }
-
     .legend-item {
       display:flex; align-items:center; gap:8px;
-      padding:6px 8px; margin:0 -8px;
-      cursor:pointer; border-radius:6px; transition:background 0.15s;
+      padding: 6px 8px; margin: 0 -8px;
+      border-radius: 6px; cursor: pointer;
+      transition: background 0.15s;
     }
-    .legend-item:hover  { background:var(--bg); }
-    .legend-item.active { background:#eef3f8; }
-
-    .legend-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .legend-item:hover  { background: var(--bg); }
+    .legend-item.active { background: #eef3f8; }
+    .legend-dot   { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
     .legend-label { font-size:11px; color:var(--text); line-height:1.3; flex:1; }
-    .legend-count { font-family:var(--mono); font-size:10px; color:var(--muted); }
+    .legend-count { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); }
+    #legend-reset {
+      margin-top: 10px; width: 100%;
+      font-size: 11px; padding: 6px;
+      border: 0.5px solid var(--border);
+      border-radius: 6px; background: var(--surface);
+      color: var(--muted); cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.15s;
+    }
+    #legend-reset:hover { background: var(--bg); }
 
-    /* drawer */
+    /* ── article drawer ── */
     #drawer {
-      position:fixed; top:64px; left:242px; width:300px;
-      background:var(--surface); border:1px solid var(--border);
-      border-radius:10px; z-index:50;
-      max-height:calc(100vh - 140px);
-      display:flex; flex-direction:column;
-      box-shadow:var(--shadow);
-      transform:translateX(-8px); opacity:0; pointer-events:none;
-      transition:opacity 0.2s, transform 0.2s;
+      position: fixed; top: 64px; left: 242px; width: 300px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 10px; z-index: 100;
+      max-height: calc(100vh - 140px);
+      display: flex; flex-direction: column;
+      box-shadow: var(--shadow);
+      transform: translateX(-8px); opacity: 0; pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
     }
     #drawer.open { opacity:1; transform:translateX(0); pointer-events:all; }
 
     .drawer-header {
-      padding:14px 14px 10px;
-      border-bottom:1px solid var(--border); flex-shrink:0;
+      padding: 14px 14px 10px;
+      border-bottom: 0.5px solid var(--border); flex-shrink: 0;
     }
     .drawer-topic { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
     .drawer-dot   { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
-    .drawer-label { font-size:13px; font-weight:500; color:var(--text); flex:1; }
+    .drawer-label { font-size:13px; font-weight:500; flex:1; }
     .drawer-close {
       width:20px; height:20px; border-radius:50%;
-      background:var(--bg); border:1px solid var(--border);
+      background: var(--bg); border: 0.5px solid var(--border);
       cursor:pointer; display:flex; align-items:center; justify-content:center;
-      font-size:11px; color:var(--muted); flex-shrink:0; transition:background 0.15s;
+      font-size:11px; color:var(--muted); flex-shrink:0;
+      transition: background 0.15s;
     }
-    .drawer-close:hover { background:var(--border); }
-    .drawer-meta { font-family:var(--mono); font-size:10px; color:var(--muted); }
+    .drawer-close:hover { background: var(--border); }
+    .drawer-meta { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); }
 
     .drawer-articles { overflow-y:auto; flex:1; padding:6px 0; }
     .drawer-articles::-webkit-scrollbar { width:3px; }
     .drawer-articles::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
 
     .article-item {
-      padding:10px 14px; border-bottom:1px solid var(--border);
-      cursor:pointer; transition:background 0.12s;
-      text-decoration:none; display:block;
+      padding: 10px 14px;
+      border-bottom: 0.5px solid var(--border);
+      text-decoration: none; display:block;
+      transition: background 0.12s;
     }
-    .article-item:last-child { border-bottom:none; }
-    .article-item:hover { background:var(--bg); }
-
-    .article-title {
-      font-size:12px; font-weight:500; color:var(--text);
-      line-height:1.4; margin-bottom:4px;
-    }
-    .article-meta {
-      font-family:var(--mono); font-size:10px; color:var(--muted);
+    .article-item:last-child { border-bottom: none; }
+    .article-item:hover { background: var(--bg); }
+    .article-title { font-size:12px; font-weight:500; color:var(--text); line-height:1.4; margin-bottom:4px; }
+    .article-meta  {
+      font-family:'DM Mono',monospace; font-size:10px; color:var(--muted);
       display:flex; gap:8px; flex-wrap:wrap; align-items:center;
     }
-    .article-new {
-      background:var(--new); color:#fff;
-      font-size:9px; padding:1px 4px; border-radius:3px;
-    }
+    .article-new { background:var(--new); color:#fff; font-size:9px; padding:1px 4px; border-radius:3px; }
     .article-outlets { font-size:10px; color:var(--muted); margin-top:3px; }
 
-    /* stats */
+    /* ── stats (right) ── */
     #stats {
-      position:fixed; top:64px; right:16px;
-      display:flex; flex-direction:column; gap:8px; z-index:50;
+      position: fixed; top:64px; right:16px;
+      display: flex; flex-direction:column; gap:8px; z-index:100;
     }
     .stat-card {
-      background:var(--surface); border:1px solid var(--border);
-      border-radius:8px; padding:10px 14px; text-align:right;
-      box-shadow:var(--shadow);
+      background: var(--surface); border: 0.5px solid var(--border);
+      border-radius: 8px; padding: 10px 14px; text-align:right;
+      box-shadow: var(--shadow);
     }
-    .stat-value { font-family:var(--mono); font-size:20px; font-weight:300; color:var(--text); }
+    .stat-value { font-family:'DM Mono',monospace; font-size:20px; font-weight:300; }
     .stat-label { font-size:10px; color:var(--muted); margin-top:1px; }
-    .stat-new .stat-value { color:var(--new); }
+    .stat-new .stat-value { color: var(--new); }
 
-    /* tooltip */
-    #tooltip {
-      position:fixed; pointer-events:none; z-index:200; max-width:260px;
-      background:var(--surface); border:1px solid var(--border);
-      border-radius:10px; padding:11px 13px;
-      box-shadow:var(--shadow); opacity:0; transition:opacity 0.12s;
-    }
-    #tooltip.visible { opacity:1; }
-    .tt-source {
-      font-family:var(--mono); font-size:10px; color:var(--muted);
-      margin-bottom:4px; display:flex; align-items:center; gap:6px;
-    }
-    .tt-new-badge {
-      background:var(--new); color:#fff;
-      font-size:9px; padding:1px 4px; border-radius:3px;
-    }
-    .tt-title  { font-size:12px; font-weight:500; color:var(--text); line-height:1.4; margin-bottom:5px; }
-    .tt-date   { font-family:var(--mono); font-size:10px; color:var(--muted); }
-    .tt-outlets { font-size:10px; color:var(--muted); margin-top:4px; line-height:1.4; }
-    .tt-cluster {
-      margin-top:7px; padding-top:7px; border-top:1px solid var(--border);
-      font-size:10px; color:var(--muted); display:flex; align-items:center; gap:6px;
-    }
-    .tt-cluster-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
-    .tt-hint { font-size:9px; color:var(--muted); opacity:0.5; margin-top:6px; }
-
-    /* timeline */
+    /* ── timeline ── */
     #timeline {
-      position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
-      width:min(480px, calc(100vw - 48px));
-      background:var(--surface); border:1px solid var(--border);
-      border-radius:10px; padding:13px 18px; z-index:50; box-shadow:var(--shadow);
+      position: fixed; bottom:20px; left:50%; transform:translateX(-50%);
+      width: min(480px, calc(100vw - 48px));
+      background: var(--surface); border: 0.5px solid var(--border);
+      border-radius: 10px; padding: 13px 18px;
+      z-index: 100; box-shadow: var(--shadow);
     }
     .timeline-header {
       display:flex; justify-content:space-between;
       align-items:center; margin-bottom:10px;
     }
     .timeline-title {
-      font-family:var(--mono); font-size:9px; color:var(--muted);
+      font-family:'DM Mono',monospace; font-size:9px; color:var(--muted);
       letter-spacing:0.1em; text-transform:uppercase;
     }
     #timeline-labels {
-      font-family:var(--mono); font-size:10px; color:var(--muted);
+      font-family:'DM Mono',monospace; font-size:10px; color:var(--muted);
       display:flex; justify-content:space-between; margin-top:6px;
     }
     input[type=range] {
-      width:100%; -webkit-appearance:none;
-      height:2px; background:var(--border); border-radius:2px; outline:none;
-    }
-    input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance:none; width:14px; height:14px;
-      border-radius:50%; background:var(--accent); cursor:pointer;
-      box-shadow:0 0 0 3px rgba(78,121,167,0.15);
-    }
-
-    /* loading */
-    #loading {
-      position:fixed; inset:0; background:var(--bg);
-      display:flex; flex-direction:column; align-items:center;
-      justify-content:center; gap:14px; z-index:999;
-    }
-    .loading-title { font-family:var(--mono); font-size:13px; color:var(--text); letter-spacing:0.12em; }
-    .loading-sub   { font-size:12px; color:var(--muted); }
-    .loading-bar   { width:180px; height:2px; background:var(--border); border-radius:1px; overflow:hidden; }
-    .loading-bar-fill {
-      height:100%; background:var(--accent);
-      animation:loadpulse 1.2s ease-in-out infinite;
-    }
-    @keyframes loadpulse {
-      0%   { width:0%;  margin-left:0%; }
-      50%  { width:60%; margin-left:20%; }
-      100% { width:0%;  margin-left:100%; }
+      width:100%; accent-color: var(--accent);
+      height: 3px; cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-<div id="loading">
-  <div class="loading-title">NEWSPHERE LIVE</div>
-  <div class="loading-sub">Loading today's map…</div>
-  <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+<div id="loader">
+  <div id="loader-spinner"></div>
+  <div id="loader-text">Loading today's map…</div>
 </div>
 
 <nav>
@@ -245,11 +233,14 @@
   </div>
 </nav>
 
+<!-- legend -->
 <div id="legend">
   <div class="panel-title">Topics</div>
   <div id="legend-items"></div>
+  <button id="legend-reset">Show all</button>
 </div>
 
+<!-- article drawer -->
 <div id="drawer">
   <div class="drawer-header">
     <div class="drawer-topic">
@@ -262,6 +253,7 @@
   <div class="drawer-articles" id="drawer-articles"></div>
 </div>
 
+<!-- stats -->
 <div id="stats">
   <div class="stat-card">
     <div class="stat-value" id="stat-articles">—</div>
@@ -277,21 +269,19 @@
   </div>
 </div>
 
-<canvas id="canvas"></canvas>
-
+<!-- tooltip -->
 <div id="tooltip">
-  <div class="tt-source"  id="tt-source"></div>
-  <div class="tt-title"   id="tt-title"></div>
-  <div class="tt-date"    id="tt-date"></div>
-  <div class="tt-outlets" id="tt-outlets"></div>
-  <div class="tt-cluster" id="tt-cluster"></div>
-  <div class="tt-hint">click to open article</div>
+  <div class="t-source"  id="tt-source"></div>
+  <div class="t-title"   id="tt-title"></div>
+  <div class="t-meta"    id="tt-meta"></div>
+  <div class="t-cluster" id="tt-cluster"></div>
 </div>
 
+<!-- timeline -->
 <div id="timeline">
   <div class="timeline-header">
     <span class="timeline-title">Timeline</span>
-    <span id="timeline-current" style="font-family:var(--mono);font-size:10px;color:var(--muted);">All dates</span>
+    <span id="timeline-current" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);">All dates</span>
   </div>
   <input type="range" id="timeline-slider" min="0" max="100" value="100" />
   <div id="timeline-labels">
@@ -301,204 +291,232 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
-const COLORS = [
-  0x4e79a7,0xf28e2b,0xe15759,0x76b7b2,0x59a14f,
-  0xedc948,0xb07aa1,0xff9da7,0x9c755f,0xbab0ac,
-  0x1f77b4,0xff7f0e,0x2ca02c,0xd62728,0x9467bd,
-  0x8c564b,0xe377c2,0x7f7f7f,0xbcbd22,0x17becf,
-  0xaec7e8,0xffbb78,0x98df8a,0xff9896,0xc5b0d5,
+// ── palette ───────────────────────────────────────────────────────────────
+const CLUSTER_COLORS = [
+  '#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f',
+  '#edc948','#b07aa1','#ff9da7','#9c755f','#bab0ac',
+  '#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd',
+  '#8c564b','#e377c2','#7f7f7f','#bcbd22','#17becf',
+  '#aec7e8','#ffbb78','#98df8a','#ff9896','#c5b0d5',
 ];
-const NOISE_COLOR = 0xcccccc;
-const NEW_COLOR   = 0x3a8a40;
+const NOISE_COLOR = '#cccccc';
+const NEW_COLOR   = '#3a8a40';
 
-function clusterColor(id) { return id === -1 ? NOISE_COLOR : COLORS[id % COLORS.length]; }
-function hexStr(hex) { return '#' + hex.toString(16).padStart(6,'0'); }
+function clusterHex(id) {
+  return id === -1 ? NOISE_COLOR : CLUSTER_COLORS[id % CLUSTER_COLORS.length];
+}
 
-// ── Three.js setup ────────────────────────────────────────────────────────
-const canvas   = document.getElementById('canvas');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+// ── Three.js ──────────────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xf9f9f7);
+
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(0, 0, 20);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setClearColor(0xf5f5f2, 1);
+document.body.appendChild(renderer.domElement);
+renderer.domElement.style.position = 'fixed';
+renderer.domElement.style.top = '0';
+renderer.domElement.style.left = '0';
+renderer.domElement.style.zIndex = '1';
 
-const scene  = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.01, 1000);
-camera.position.set(0, 0, 18);
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.enablePan = true;
 
-// subtle grid for depth cue
-const grid = new THREE.GridHelper(60, 40, 0xe0e0dc, 0xe0e0dc);
-grid.position.y = -8;
-scene.add(grid);
-
-// ── orbit controls ────────────────────────────────────────────────────────
-let isDragging = false, prevMouse = {x:0,y:0};
-let spherical  = {theta:0.3, phi:1.2, r:18};
-let targetSph  = {theta:0.3, phi:1.2, r:18};
-let autoRotate = true;
-
-canvas.addEventListener('mousedown', e => {
-  isDragging=true; autoRotate=false; prevMouse={x:e.clientX,y:e.clientY};
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
 });
-canvas.addEventListener('mouseup',    ()  => { isDragging=false; });
-canvas.addEventListener('mouseleave', ()  => { isDragging=false; });
-canvas.addEventListener('mousemove',  e   => {
-  if (isDragging) {
-    targetSph.theta -= (e.clientX-prevMouse.x)*0.005;
-    targetSph.phi = Math.max(0.2, Math.min(Math.PI-0.2, targetSph.phi+(e.clientY-prevMouse.y)*0.005));
-    prevMouse={x:e.clientX,y:e.clientY};
-  }
-  handleHover(e);
-});
-canvas.addEventListener('wheel', e => {
-  targetSph.r = Math.max(4, Math.min(50, targetSph.r+e.deltaY*0.02));
-}, {passive:true});
-canvas.addEventListener('click', handleClick);
 
-// ── scene objects ─────────────────────────────────────────────────────────
-let allPoints={}, clusterLabels={}, newUrls=new Set();
-let pointsGeo, pointsMat, pointsMesh, highlightMesh;
+// ── circle sprite texture (same as original) ──────────────────────────────
+function makeCircleTexture() {
+  const size = 64;
+  const c    = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+  const half = size / 2;
+  const g = ctx.createRadialGradient(half, half, 0, half, half, half);
+  g.addColorStop(0.0,  'rgba(255,255,255,1)');
+  g.addColorStop(0.85, 'rgba(255,255,255,1)');
+  g.addColorStop(1.0,  'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(half, half, half, 0, Math.PI * 2);
+  ctx.fill();
+  return new THREE.CanvasTexture(c);
+}
 
-const raycaster = new THREE.Raycaster();
-raycaster.params.Points.threshold = 0.18;
-const mouse = new THREE.Vector2(-9999,-9999);
-let hoveredIdx = -1;
+// ── data ──────────────────────────────────────────────────────────────────
+let allPoints     = [];
+let newsData      = {};
+let clusterLabels = {};
+let newUrls       = new Set();
+let activeCluster = null;
+let dateList      = [];
 
-function buildScene(points) {
-  if (pointsMesh)    scene.remove(pointsMesh);
-  if (highlightMesh) scene.remove(highlightMesh);
+const raycaster   = new THREE.Raycaster();
+raycaster.params.Points.threshold = 0.15;
+const mouse       = new THREE.Vector2();
+let mouseDownPos  = { x:0, y:0 };
 
-  const n=points.length, pos=new Float32Array(n*3), col=new Float32Array(n*3), sz=new Float32Array(n);
-  const tmp=new THREE.Color(), newP=[], newC=[];
+// ── build point cloud ─────────────────────────────────────────────────────
+function buildPointCloud(points) {
+  if (window.pointCloud) scene.remove(window.pointCloud);
 
-  points.forEach((p,i) => {
-    pos[i*3]=p.x; pos[i*3+1]=p.y; pos[i*3+2]=p.z;
-    const isNew=newUrls.has(p.url);
-    tmp.setHex(isNew ? NEW_COLOR : clusterColor(p.cluster));
-    col[i*3]=tmp.r; col[i*3+1]=tmp.g; col[i*3+2]=tmp.b;
-    sz[i] = isNew ? 0.5 : (p.cluster===-1 ? 0.18 : 0.32);
-    if (isNew) { newP.push(p.x,p.y,p.z); newC.push(tmp.r,tmp.g,tmp.b); }
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(points.length * 3);
+  const col = new Float32Array(points.length * 3);
+
+  points.forEach((p, i) => {
+    pos[i*3]   = p.x;
+    pos[i*3+1] = p.y;
+    pos[i*3+2] = p.z;
+    const isNew = newUrls.has(p.url);
+    const c = new THREE.Color(isNew ? NEW_COLOR : clusterHex(p.cluster));
+    col[i*3] = c.r; col[i*3+1] = c.g; col[i*3+2] = c.b;
   });
 
-  pointsGeo = new THREE.BufferGeometry();
-  pointsGeo.setAttribute('position', new THREE.BufferAttribute(pos,3));
-  pointsGeo.setAttribute('color',    new THREE.BufferAttribute(col,3));
-  pointsGeo.setAttribute('size',     new THREE.BufferAttribute(sz,1));
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
 
-  pointsMat = new THREE.ShaderMaterial({
-    vertexColors:true, transparent:true, depthWrite:false,
-    uniforms: {opacity:{value:1.0}},
-    vertexShader:`
-      attribute float size; varying vec3 vColor;
-      void main(){
-        vColor=color;
-        vec4 mv=modelViewMatrix*vec4(position,1.0);
-        gl_PointSize=size*(300.0/-mv.z);
-        gl_Position=projectionMatrix*mv;
-      }`,
-    fragmentShader:`
-      varying vec3 vColor; uniform float opacity;
-      void main(){
-        float d=length(gl_PointCoord-0.5)*2.0;
-        if(d>1.0) discard;
-        gl_FragColor=vec4(vColor, smoothstep(1.0,0.2,d)*opacity);
-      }`,
+  const mat = new THREE.PointsMaterial({
+    size:            0.28,
+    vertexColors:    true,
+    sizeAttenuation: true,
+    map:             makeCircleTexture(),
+    transparent:     true,
+    alphaTest:       0.05,
+    depthWrite:      false,
   });
 
-  pointsMesh = new THREE.Points(pointsGeo, pointsMat);
-  scene.add(pointsMesh);
+  window.pointCloud = new THREE.Points(geo, mat);
+  scene.add(window.pointCloud);
+}
 
-  if (newP.length>0) {
-    const hGeo=new THREE.BufferGeometry();
-    hGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(newP),3));
-    hGeo.setAttribute('color',    new THREE.BufferAttribute(new Float32Array(newC),3));
-    const hMat=new THREE.ShaderMaterial({
-      vertexColors:true, transparent:true, depthWrite:false,
-      uniforms:{time:{value:0}},
-      vertexShader:`
-        varying vec3 vColor; uniform float time;
-        void main(){
-          vColor=color;
-          vec4 mv=modelViewMatrix*vec4(position,1.0);
-          gl_PointSize=(0.6+0.3*sin(time*2.0))*(300.0/-mv.z);
-          gl_Position=projectionMatrix*mv;
-        }`,
-      fragmentShader:`
-        varying vec3 vColor; uniform float time;
-        void main(){
-          float d=length(gl_PointCoord-0.5)*2.0;
-          if(d>1.0) discard;
-          gl_FragColor=vec4(vColor, smoothstep(1.0,0.4,d)*0.4);
-        }`,
-    });
-    highlightMesh=new THREE.Points(hGeo, hMat);
-    scene.add(highlightMesh);
-  }
+function centerCamera() {
+  const box    = new THREE.Box3().setFromObject(window.pointCloud);
+  const center = box.getCenter(new THREE.Vector3());
+  const size   = box.getSize(new THREE.Vector3());
+  const dist   = Math.max(size.x, size.y, size.z) * 1.5;
+  camera.position.set(center.x, center.y, center.z + dist);
+  camera.lookAt(center);
+  controls.target.copy(center);
+  controls.update();
+  window.sceneCenter = center;
+}
+
+// ── color update (highlight / timeline filter) ────────────────────────────
+function applyFilters(cutoffDate, clusterId) {
+  if (!window.pointCloud) return;
+  const colors = window.pointCloud.geometry.attributes.color;
+  allPoints.forEach((p, i) => {
+    const inDate    = !cutoffDate || !p.date || p.date <= cutoffDate;
+    const inCluster = clusterId === null || p.cluster === clusterId;
+    if (inDate && inCluster) {
+      const isNew = newUrls.has(p.url);
+      const c = new THREE.Color(isNew ? NEW_COLOR : clusterHex(p.cluster));
+      colors.setXYZ(i, c.r, c.g, c.b);
+    } else {
+      colors.setXYZ(i, 0.87, 0.87, 0.85);
+    }
+  });
+  colors.needsUpdate = true;
 }
 
 // ── legend ────────────────────────────────────────────────────────────────
-function buildLegend(data) {
-  const counts={};
-  data.points.forEach(p => { if(p.cluster!==-1) counts[p.cluster]=(counts[p.cluster]||0)+1; });
-  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
-  const container=document.getElementById('legend-items');
-  container.innerHTML='';
-  sorted.forEach(([cid,count]) => {
-    const label=clusterLabels[cid]||'unlabelled';
-    const color=hexStr(clusterColor(parseInt(cid)));
-    const item=document.createElement('div');
-    item.className='legend-item'; item.dataset.cid=cid;
-    item.innerHTML=`
+function buildLegend() {
+  const counts = {};
+  allPoints.forEach(p => { if (p.cluster !== -1) counts[p.cluster] = (counts[p.cluster]||0)+1; });
+  const sorted = Object.entries(clusterLabels)
+    .filter(([id]) => parseInt(id) !== -1)
+    .sort((a,b) => (counts[b[0]]||0) - (counts[a[0]]||0));
+
+  const container = document.getElementById('legend-items');
+  container.innerHTML = '';
+
+  sorted.forEach(([id, label]) => {
+    const color = clusterHex(parseInt(id));
+    const item  = document.createElement('div');
+    item.className = 'legend-item';
+    item.dataset.cid = id;
+    item.innerHTML = `
       <div class="legend-dot" style="background:${color}"></div>
       <div class="legend-label">${label}</div>
-      <div class="legend-count">${count}</div>`;
-    item.addEventListener('click', () => openDrawer(parseInt(cid), item));
+      <div class="legend-count">${counts[id]||0}</div>`;
+    item.addEventListener('click', () => {
+      highlightCluster(parseInt(id), item);
+      openDrawer(parseInt(id));
+    });
     container.appendChild(item);
+  });
+
+  document.getElementById('legend-reset').addEventListener('click', () => {
+    resetHighlight();
+    closeDrawer();
   });
 }
 
-// ── drawer ────────────────────────────────────────────────────────────────
-let activeCluster = null;
-
-function openDrawer(cid, legendItem) {
-  document.querySelectorAll('.legend-item').forEach(el => el.classList.remove('active'));
-
-  if (activeCluster === cid) {
-    activeCluster = null;
-    document.getElementById('drawer').classList.remove('open');
-    return;
-  }
-
+// ── highlight ─────────────────────────────────────────────────────────────
+function highlightCluster(cid, itemEl) {
+  if (activeCluster === cid) { resetHighlight(); closeDrawer(); return; }
   activeCluster = cid;
-  legendItem.classList.add('active');
+  document.querySelectorAll('.legend-item').forEach(el => el.classList.remove('active'));
+  itemEl.classList.add('active');
+  const cutoff = getCurrentCutoff();
+  applyFilters(cutoff, activeCluster);
+}
 
-  const color  = hexStr(clusterColor(cid));
+function resetHighlight() {
+  activeCluster = null;
+  document.querySelectorAll('.legend-item').forEach(el => el.classList.remove('active'));
+  applyFilters(getCurrentCutoff(), null);
+}
+
+function getCurrentCutoff() {
+  const slider = document.getElementById('timeline-slider');
+  const idx    = parseInt(slider.value);
+  return dateList.length > 0 ? dateList[idx] : null;
+}
+
+// ── drawer ────────────────────────────────────────────────────────────────
+function openDrawer(cid) {
+  const color  = clusterHex(cid);
   const label  = clusterLabels[cid] || 'unlabelled';
-  const pts    = allPoints.filter(p => p.cluster===cid)
+  const pts    = allPoints.filter(p => p.cluster === cid)
                           .sort((a,b) => (b.date||'').localeCompare(a.date||''));
 
   const outlets = new Set();
-  pts.forEach(a => { outlets.add(a.source); (a.also_covered_by||[]).forEach(s=>outlets.add(s)); });
+  pts.forEach(a => { outlets.add(a.source); (a.also_covered_by||[]).forEach(s => outlets.add(s)); });
 
-  document.getElementById('drawer-dot').style.background = color;
-  document.getElementById('drawer-label').textContent    = label;
-  document.getElementById('drawer-meta').textContent     = `${pts.length} stories · ${outlets.size} outlets`;
+  document.getElementById('drawer-dot').style.background   = color;
+  document.getElementById('drawer-label').textContent      = label;
+  document.getElementById('drawer-meta').textContent       = `${pts.length} stories · ${outlets.size} outlets`;
 
-  const container=document.getElementById('drawer-articles');
-  container.innerHTML='';
+  const container = document.getElementById('drawer-articles');
+  container.innerHTML = '';
 
   pts.forEach(a => {
     const isNew = newUrls.has(a.url);
-    const also  = (a.also_covered_by||[]).length>0
+    const also  = (a.also_covered_by||[]).length > 0
       ? `<div class="article-outlets">Also: ${a.also_covered_by.join(', ')}</div>` : '';
-    const el=document.createElement('a');
-    el.className='article-item'; el.href=a.url||'#'; el.target='_blank'; el.rel='noopener';
-    el.innerHTML=`
+    const el = document.createElement('a');
+    el.className = 'article-item';
+    el.href      = a.url || '#';
+    el.target    = '_blank';
+    el.rel       = 'noopener';
+    el.innerHTML = `
       <div class="article-title">${a.title}</div>
       <div class="article-meta">
         <span>${a.source}</span>
         <span>${a.date||''}</span>
-        ${isNew?'<span class="article-new">NEW</span>':''}
+        ${isNew ? '<span class="article-new">NEW</span>' : ''}
       </div>${also}`;
     container.appendChild(el);
   });
@@ -506,133 +524,141 @@ function openDrawer(cid, legendItem) {
   document.getElementById('drawer').classList.add('open');
 }
 
-document.getElementById('drawer-close').addEventListener('click', () => {
-  activeCluster=null;
-  document.querySelectorAll('.legend-item').forEach(el=>el.classList.remove('active'));
+function closeDrawer() {
   document.getElementById('drawer').classList.remove('open');
+}
+
+document.getElementById('drawer-close').addEventListener('click', () => {
+  closeDrawer();
+  resetHighlight();
 });
 
 // ── timeline ──────────────────────────────────────────────────────────────
 function setupTimeline() {
-  const dates=[...new Set(allPoints.map(p=>p.date).filter(Boolean))].sort();
-  if (dates.length<2) return;
-  document.getElementById('tl-start').textContent=dates[0];
-  document.getElementById('tl-end').textContent=dates[dates.length-1];
-  const slider=document.getElementById('timeline-slider');
-  slider.min=0; slider.max=dates.length-1; slider.value=dates.length-1;
+  dateList = [...new Set(allPoints.map(p => p.date).filter(Boolean))].sort();
+  if (dateList.length < 2) return;
+
+  document.getElementById('tl-start').textContent = dateList[0];
+  document.getElementById('tl-end').textContent   = dateList[dateList.length - 1];
+
+  const slider = document.getElementById('timeline-slider');
+  slider.min   = 0;
+  slider.max   = dateList.length - 1;
+  slider.value = dateList.length - 1;
+
   slider.addEventListener('input', () => {
-    const cutoff=dates[parseInt(slider.value)];
-    document.getElementById('timeline-current').textContent=cutoff;
-    const s=pointsGeo.attributes.size.array;
-    allPoints.forEach((p,i) => {
-      const show=!p.date||p.date<=cutoff;
-      s[i]=show?(newUrls.has(p.url)?0.5:(p.cluster===-1?0.18:0.32)):0;
-    });
-    pointsGeo.attributes.size.needsUpdate=true;
+    const cutoff = dateList[parseInt(slider.value)];
+    document.getElementById('timeline-current').textContent = cutoff;
+    applyFilters(cutoff, activeCluster);
   });
 }
 
 // ── tooltip ───────────────────────────────────────────────────────────────
-const tooltip=document.getElementById('tooltip');
+const tooltip = document.getElementById('tooltip');
 
-function handleHover(e) {
-  mouse.x=(e.clientX/window.innerWidth)*2-1;
-  mouse.y=-(e.clientY/window.innerHeight)*2+1;
-  raycaster.setFromCamera(mouse,camera);
-  if (!pointsMesh) return;
-  const hits=raycaster.intersectObject(pointsMesh);
-  if (hits.length>0) {
-    const idx=hits[0].index;
-    if (idx!==hoveredIdx) { hoveredIdx=idx; showTooltip(e,allPoints[idx]); }
-    canvas.style.cursor='pointer';
-    posTooltip(e);
+window.addEventListener('mousemove', e => {
+  mouse.x =  (e.clientX / window.innerWidth)  * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+  if (!window.pointCloud) return;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObject(window.pointCloud);
+
+  if (hits.length > 0) {
+    const p      = allPoints[hits[0].index];
+    const isNew  = newUrls.has(p.url);
+    const color  = clusterHex(p.cluster);
+    const label  = p.cluster === -1 ? 'noise' : (clusterLabels[p.cluster] || '');
+    const outlets= (p.also_covered_by||[]).length > 0
+      ? `Also: ${p.also_covered_by.join(', ')}` : '';
+
+    document.getElementById('tt-source').innerHTML =
+      `${p.source}${isNew ? ' <span class="t-new-badge">NEW</span>' : ''}`;
+    document.getElementById('tt-title').textContent   = p.title;
+    document.getElementById('tt-meta').textContent    = `${p.date||''} — ${p.source}`;
+    document.getElementById('tt-cluster').innerHTML   =
+      `<div class="t-cluster-dot" style="background:${color}"></div>${label}`;
+
+    tooltip.style.display = 'block';
+    let tx = e.clientX + 14, ty = e.clientY - 10;
+    if (tx + 290 > window.innerWidth)  tx = e.clientX - 300;
+    if (ty + 120 > window.innerHeight) ty = e.clientY - 130;
+    tooltip.style.left = tx + 'px';
+    tooltip.style.top  = ty + 'px';
+    renderer.domElement.style.cursor = 'pointer';
   } else {
-    hoveredIdx=-1; tooltip.classList.remove('visible'); canvas.style.cursor='default';
+    tooltip.style.display = 'none';
+    renderer.domElement.style.cursor = 'default';
   }
-}
+});
 
-function showTooltip(e,p) {
-  const isNew=newUrls.has(p.url);
-  const color=hexStr(clusterColor(p.cluster));
-  const label=p.cluster===-1?'noise':(clusterLabels[p.cluster]||'');
-  const outlets=(p.also_covered_by||[]).length>0?`Also: ${p.also_covered_by.join(', ')}`:'';
-  document.getElementById('tt-source').innerHTML=
-    `${p.source}${isNew?' <span class="tt-new-badge">NEW</span>':''}`;
-  document.getElementById('tt-title').textContent=p.title;
-  document.getElementById('tt-date').textContent=p.date||'';
-  document.getElementById('tt-outlets').textContent=outlets;
-  document.getElementById('tt-cluster').innerHTML=
-    `<div class="tt-cluster-dot" style="background:${color}"></div>${label}`;
-  tooltip.classList.add('visible');
-  posTooltip(e);
-}
+// ── click: open cluster from point ───────────────────────────────────────
+renderer.domElement.addEventListener('mousedown', e => { mouseDownPos = {x:e.clientX, y:e.clientY}; });
+renderer.domElement.addEventListener('mouseup', e => {
+  if (Math.abs(e.clientX - mouseDownPos.x) > 4 || Math.abs(e.clientY - mouseDownPos.y) > 4) return;
 
-function posTooltip(e) {
-  const pad=14,tw=tooltip.offsetWidth||260,th=tooltip.offsetHeight||110;
-  let tx=e.clientX+pad,ty=e.clientY+pad;
-  if(tx+tw>window.innerWidth)  tx=e.clientX-tw-pad;
-  if(ty+th>window.innerHeight) ty=e.clientY-th-pad;
-  tooltip.style.left=tx+'px'; tooltip.style.top=ty+'px';
-}
+  mouse.x =  (e.clientX / window.innerWidth)  * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
 
-function handleClick() {
-  if (hoveredIdx>=0) { const url=allPoints[hoveredIdx].url; if(url) window.open(url,'_blank'); }
-}
-
-// ── resize ────────────────────────────────────────────────────────────────
-window.addEventListener('resize', () => {
-  camera.aspect=window.innerWidth/window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth,window.innerHeight);
+  if (!window.pointCloud) return;
+  const hits = raycaster.intersectObject(window.pointCloud);
+  if (hits.length > 0) {
+    const p = allPoints[hits[0].index];
+    if (p.cluster === -1) return;
+    const itemEl = document.querySelector(`.legend-item[data-cid="${p.cluster}"]`);
+    if (itemEl) highlightCluster(p.cluster, itemEl);
+    openDrawer(p.cluster);
+  }
 });
 
 // ── animate ───────────────────────────────────────────────────────────────
-const clock=new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
-  const t=clock.getElapsedTime();
-  if(autoRotate) targetSph.theta+=0.0006;
-  spherical.theta+=(targetSph.theta-spherical.theta)*0.06;
-  spherical.phi  +=(targetSph.phi  -spherical.phi  )*0.06;
-  spherical.r    +=(targetSph.r    -spherical.r    )*0.06;
-  camera.position.x=spherical.r*Math.sin(spherical.phi)*Math.sin(spherical.theta);
-  camera.position.y=spherical.r*Math.cos(spherical.phi);
-  camera.position.z=spherical.r*Math.sin(spherical.phi)*Math.cos(spherical.theta);
-  camera.lookAt(0,0,0);
-  if(highlightMesh) highlightMesh.material.uniforms.time.value=t;
-  renderer.render(scene,camera);
+  controls.update();
+  renderer.render(scene, camera);
 }
 animate();
 
-// ── load ──────────────────────────────────────────────────────────────────
+// ── load data ─────────────────────────────────────────────────────────────
 async function loadData() {
-  const [mapRes,diffRes]=await Promise.allSettled([
+  const [mapRes, diffRes] = await Promise.allSettled([
     fetch('data/news_map.json'),
     fetch('data/news_map_diff.json'),
   ]);
-  if(mapRes.status!=='fulfilled'||!mapRes.value.ok) {
-    document.querySelector('.loading-sub').textContent='Could not load map data.'; return;
+
+  if (mapRes.status !== 'fulfilled' || !mapRes.value.ok) {
+    document.getElementById('loader-text').textContent = 'Could not load map data.';
+    return;
   }
-  const data=await mapRes.value.json();
-  if(diffRes.status==='fulfilled'&&diffRes.value.ok) {
-    const diff=await diffRes.value.json();
-    newUrls=new Set((diff.new_points||[]).map(p=>p.url).filter(Boolean));
-    document.getElementById('stat-new').textContent=diff.n_new??'—';
+
+  const data = await mapRes.value.json();
+
+  if (diffRes.status === 'fulfilled' && diffRes.value.ok) {
+    const diff = await diffRes.value.json();
+    newUrls = new Set((diff.new_points || []).map(p => p.url).filter(Boolean));
+    document.getElementById('stat-new').textContent = diff.n_new ?? '—';
   }
-  allPoints     = data.points||[];
-  clusterLabels = data.clusters||{};
-  document.getElementById('stat-articles').textContent=data.n_articles??allPoints.length;
-  document.getElementById('stat-clusters').textContent=data.n_clusters??'—';
-  document.getElementById('last-updated').textContent =data.generated_at??'';
-  buildScene(allPoints);
-  buildLegend(data);
+
+  allPoints     = data.points || [];
+  clusterLabels = data.clusters || {};
+  newsData      = data;
+
+  document.getElementById('stat-articles').textContent = data.n_articles ?? allPoints.length;
+  document.getElementById('stat-clusters').textContent = data.n_clusters ?? '—';
+  document.getElementById('last-updated').textContent  = data.generated_at ?? '';
+
+  buildPointCloud(allPoints);
+  centerCamera();
+  buildLegend();
   setupTimeline();
-  document.getElementById('loading').style.display='none';
+
+  document.getElementById('loader').style.display = 'none';
 }
 
 loadData().catch(err => {
   console.error(err);
-  document.querySelector('.loading-sub').textContent='Error loading data.';
+  document.getElementById('loader-text').textContent = 'Error loading data.';
 });
 </script>
 </body>
