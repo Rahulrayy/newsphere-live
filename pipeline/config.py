@@ -57,4 +57,3 @@ CLOUDFLARE_WORKER_URL = os.environ.get(
     "CLOUDFLARE_WORKER_URL",
     "https://newsphere-subscribe.rahulraypm2002.workers.dev",
 )
-)
