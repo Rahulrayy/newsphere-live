@@ -565,7 +565,7 @@ function buildScene(points) {
     col[i * 3]     = tmp.r;
     col[i * 3 + 1] = tmp.g;
     col[i * 3 + 2] = tmp.b;
-    sizes[i]       = isNew ? 0.22 : (p.cluster === -1 ? 0.08 : 0.14);
+    sizes[i]       = isNew ? 0.5 : (p.cluster === -1 ? 0.18 : 0.32);
 
     if (isNew) {
       newPos.push(p.x, p.y, p.z);
@@ -697,7 +697,7 @@ function filterByDate(cutoff) {
   const sizes = pointsGeo.attributes.size.array;
   allPoints.forEach((p, i) => {
     const show = !p.date || p.date <= cutoff;
-    sizes[i] = show ? (newUrls.has(p.url) ? 0.22 : (p.cluster === -1 ? 0.08 : 0.14)) : 0;
+    sizes[i] = show ? (newUrls.has(p.url) ? 0.5 : (p.cluster === -1 ? 0.18 : 0.32)) : 0;
   });
   pointsGeo.attributes.size.needsUpdate = true;
 }
