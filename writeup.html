@@ -257,10 +257,20 @@
   <div class="section">
     <h2>Background</h2>
     <p>
-      Newsphere Live is the production successor to a static MSc project that mapped 7,000 news articles from 2018
-      using sentence embeddings, UMAP, and HDBSCAN. That project demonstrated the ML pipeline worked;
+      Newsphere Live is the production successor to a static personal project that mapped 7,000 news articles from 2018
+      using sentence embeddings, UMAP, and HDBSCAN, built while studying Computational Social Science at Leiden University.
+      You can explore the original at <a href="https://rahulrayy.github.io/Corpus-Map/index.html" target="_blank">rahulrayy.github.io/Corpus-Map</a>.
+      That project demonstrated the ML pipeline worked;
       this one asks whether the same approach can produce something genuinely useful - a map of <em>today's</em> news
       that updates itself every morning without any manual intervention.
+    </p>
+    <p>
+      The original project included quantitative evaluation of cluster quality using silhouette scores and topic
+      coherence metrics across different parameter settings. The architecture of Newsphere Live reflects those
+      findings directly. The HDBSCAN minimum cluster size fraction, the cosine similarity threshold for semantic
+      deduplication, and the UMAP neighbourhood parameter were all informed by what worked and what did not in
+      the static version. Newsphere Live is not a fresh experiment with these choices - it is the production
+      implementation of the best configuration found during that evaluation.
     </p>
     <p>
       The two projects share a frontend architecture (Three.js, static JSON) and the same core ML stack,
@@ -550,7 +560,7 @@
 
   <!-- footer -->
   <div class="footer">
-    <span>Rahul Ray · MSc Computational Social Science · Leiden University</span>
+    <span>Rahul Ray · Computational Social Science · Leiden University</span>
     <span>
       <a href="index.html">Live map</a> ·
       <a href="https://rahulrayy.github.io/Corpus-Map/index.html" target="_blank">Original Newsphere</a> ·
