@@ -21,7 +21,7 @@ DAYS_BACK                 = 7
 EMBED_MODEL               = "all-MiniLM-L6-v2"
 EMBED_BATCH_SIZE          = 64
 
-DEDUPE_THRESHOLD          = 0.87
+DEDUPE_THRESHOLD          = 0.90
 
 UMAP_NEIGHBORS            = 20
 UMAP_MIN_DIST             = 0.1
@@ -29,9 +29,9 @@ UMAP_COMPONENTS           = 3
 UMAP_METRIC               = "cosine"
 UMAP_RANDOM_STATE         = 42
 
-HDBSCAN_MIN_SIZE_FRACTION = 0.015
+HDBSCAN_MIN_SIZE_FRACTION = 0.025
 HDBSCAN_MIN_SIZE_FLOOR    = 8
-HDBSCAN_MIN_SAMPLES       = 5
+HDBSCAN_MIN_SAMPLES       = 6
 HDBSCAN_METHOD            = "eom"
 
 TFIDF_NGRAM_RANGE         = (1, 2)

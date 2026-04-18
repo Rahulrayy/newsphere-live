@@ -29,7 +29,6 @@
       line-height: 1.75;
     }
 
-    /* ── nav ── */
     nav {
       position: fixed; top:0; left:0; right:0; height:48px;
       background: rgba(249,249,247,0.95);
@@ -46,14 +45,12 @@
     .nav-links a { font-size:13px; color:var(--muted); text-decoration:none; transition:color 0.2s; }
     .nav-links a:hover, .nav-links a.active { color:var(--text); }
 
-    /* ── layout ── */
     .page {
       max-width: 720px;
       margin: 0 auto;
       padding: 88px 24px 100px;
     }
 
-    /* ── tldr ── */
     .tldr {
       background: var(--surface);
       border: 0.5px solid var(--border);
@@ -73,7 +70,6 @@
       font-size: 14px; color: #333; line-height: 1.7;
     }
 
-    /* ── sections ── */
     .section { margin-bottom: 52px; }
 
     h1 {
@@ -106,7 +102,6 @@
     p { margin-bottom: 14px; color: #2a2a2a; }
     p:last-child { margin-bottom: 0; }
 
-    /* ── inline code ── */
     code {
       font-family: var(--mono);
       font-size: 12px;
@@ -116,7 +111,6 @@
       color: #333;
     }
 
-    /* ── code block ── */
     pre {
       background: #f0f0ed;
       border: 0.5px solid var(--border);
@@ -130,7 +124,6 @@
       color: #333; line-height: 1.6;
     }
 
-    /* ── comparison table ── */
     .compare-table {
       width: 100%; border-collapse: collapse;
       font-size: 13px; margin: 20px 0;
@@ -153,7 +146,6 @@
     .compare-table tr:nth-child(even) td { background: #fafaf8; }
     .compare-table td:first-child { color: var(--muted); font-size:12px; }
 
-    /* ── callout boxes ── */
     .callout {
       background: var(--surface);
       border: 0.5px solid var(--border);
@@ -171,7 +163,6 @@
     .callout.solution .callout-label { color: var(--accent); }
     .callout.tradeoff .callout-label { color: #e67e22; }
 
-    /* ── pipeline diagram ── */
     .pipeline {
       background: var(--surface);
       border: 0.5px solid var(--border);
@@ -194,7 +185,6 @@
     .pipe-name { color: var(--accent); font-weight:400; }
     .pipe-desc { color: var(--muted); font-size:11px; margin-left:4px; }
 
-    /* ── cost table ── */
     .cost-table {
       width: 100%; border-collapse: collapse; font-size:13px; margin:20px 0;
     }
@@ -211,7 +201,6 @@
     .cost-free { color: var(--accent); font-weight:500; font-family:var(--mono); font-size:12px; }
     .cost-total td { font-weight:500; background:#f0f5fa !important; }
 
-    /* ── footer ── */
     .footer {
       margin-top: 64px;
       padding-top: 24px;
@@ -241,15 +230,23 @@
 
   <!-- TL;DR -->
   <div class="tldr">
-    <div class="tldr-label">TL;DR - for the non-technical reader</div>
+    <div class="tldr-label">TL;DR</div>
     <p>
-      Every morning at 2am, a script automatically pulls in hundreds of fresh articles from 11 major news outlets including the BBC, Reuters, the Guardian, and TechCrunch. Each article gets converted into a list of numbers (called an embedding) that captures its meaning, not just its words. Two articles about the same event will have very similar numbers even if they use completely different phrasing.
+      Four times a day, a pipeline pulls in fresh articles from 11 major news outlets, runs them through
+      a machine learning model that converts each article into a numerical representation of its meaning,
+      and then groups articles about the same story together even when they use completely different wording.
+      The result is an interactive 3D map where proximity reflects semantic similarity, where stories about
+      the same event cluster together, and different topics sit in different regions of the space.
     </p>
     <p style="margin-top:10px;">
-      Those numbers are then fed into a clustering algorithm that groups articles covering the same story together, labels each group with the most distinctive words from its articles, and arranges everything in 3D space so that similar topics end up near each other. The result is published as an interactive map you can explore in your browser: spin it around, click a topic cluster to read the articles, and filter by date using the timeline slider.
+      Clicking a cluster opens a panel with every article covering that story, including which other
+      outlets picked it up. A timeline slider lets you filter by date to watch how topics evolved across
+      the week. Subscribers get a daily email digest of the top clusters each morning.
     </p>
     <p style="margin-top:10px;">
-      Subscribers get a daily email digest of the top topics each morning. The whole system - pipeline, hosting, email delivery, and abuse protection - runs on free tiers with no recurring costs.
+      The whole system runs on free infrastructure with no backend, no database, and no recurring costs.
+      GitHub Actions runs the pipeline, GitHub Pages serves the site, and the output is a single static
+      JSON file that the browser loads directly.
     </p>
   </div>
 
@@ -260,16 +257,15 @@
       Newsphere Live is the production successor to a static personal project that mapped 7,000 news articles from 2018
       using sentence embeddings, UMAP, and HDBSCAN, built while studying Computational Social Science at Leiden University.
       You can explore the original at <a href="https://rahulrayy.github.io/Corpus-Map/index.html" target="_blank">rahulrayy.github.io/Corpus-Map</a>.
-      That project demonstrated the ML pipeline worked;
-      this one asks whether the same approach can produce something genuinely useful - a map of <em>today's</em> news
-      that updates itself every morning without any manual intervention.
+      That project demonstrated the ML pipeline worked. This one asks whether the same approach can produce
+      something genuinely useful: a map of <em>today's</em> news that updates itself without any manual intervention.
     </p>
     <p>
       The original project included quantitative evaluation of cluster quality using silhouette scores and topic
       coherence metrics across different parameter settings. The architecture of Newsphere Live reflects those
       findings directly. The HDBSCAN minimum cluster size fraction, the cosine similarity threshold for semantic
       deduplication, and the UMAP neighbourhood parameter were all informed by what worked and what did not in
-      the static version. Newsphere Live is not a fresh experiment with these choices - it is the production
+      the static version. Newsphere Live is not a fresh experiment with these choices. It is the production
       implementation of the best configuration found during that evaluation.
     </p>
     <p>
@@ -290,9 +286,9 @@
         <tr><td>Embedding input</td><td>Titles only</td><td>Titles + description text</td></tr>
         <tr><td>Deduplication</td><td>Exact title match</td><td>Normalised title + cosine similarity</td></tr>
         <tr><td>Cluster labels</td><td>Plain TF-IDF</td><td>c-TF-IDF with substring dedup</td></tr>
-        <tr><td>Layout stability</td><td>N/A</td><td>Procrustes-aligned day-to-day</td></tr>
-        <tr><td>Pipeline execution</td><td>Manual, Colab</td><td>GitHub Actions, daily cron</td></tr>
-        <tr><td>Update frequency</td><td>Never</td><td>Every day at 02:00 UTC</td></tr>
+        <tr><td>Layout stability</td><td>N/A</td><td>Procrustes-aligned run-to-run</td></tr>
+        <tr><td>Pipeline execution</td><td>Manual, Colab</td><td>GitHub Actions, cron schedule</td></tr>
+        <tr><td>Update frequency</td><td>Never</td><td>Every 6 hours</td></tr>
         <tr><td>Backend</td><td>None</td><td>None</td></tr>
         <tr><td>Recurring cost</td><td>€0</td><td>€0</td></tr>
       </tbody>
@@ -303,10 +299,10 @@
   <div class="section">
     <h2>Pipeline Architecture</h2>
     <p>
-      The pipeline runs as a GitHub Actions workflow on a daily cron schedule.
-      All steps are Python scripts; the only external runtime dependency is the
-      <code>all-MiniLM-L6-v2</code> sentence-transformer model, which is cached
-      between runs using the Actions cache API to avoid re-downloading 90MB of weights every day.
+      The pipeline runs as a GitHub Actions workflow on a cron schedule, rebuilding every 6 hours
+      at 00:00, 06:00, 12:00, and 18:00 UTC. All steps are Python scripts. The only external runtime
+      dependency is the <code>all-MiniLM-L6-v2</code> sentence-transformer model, which is cached
+      between runs using the Actions cache API to avoid re-downloading 90MB of weights on every run.
     </p>
 
     <div class="pipeline">
@@ -327,7 +323,7 @@
       <div class="pipe-connector">↓</div>
       <div class="pipe-step">
         <span class="pipe-name">diff.py</span>
-        <span class="pipe-desc">URL-keyed diff against yesterday's output</span>
+        <span class="pipe-desc">URL-keyed diff against previous run's output</span>
       </div>
       <div class="pipe-connector">↓</div>
       <div class="pipe-step">
@@ -337,7 +333,7 @@
       <div class="pipe-connector">↓</div>
       <div class="pipe-step">
         <span class="pipe-name">digest.py</span>
-        <span class="pipe-desc">generate digest.html, send Resend broadcast to audience</span>
+        <span class="pipe-desc">generate digest.html, send Resend email to subscribers</span>
       </div>
       <div class="pipe-connector">↓</div>
       <div class="pipe-step">
@@ -347,9 +343,9 @@
     </div>
 
     <p>
-      A typical run on GitHub's <code>ubuntu-latest</code> runner takes around 6 to 8 minutes end-to-end,
-      well inside the 6-hour job timeout. Because the repository is public, the 2,000 minute/month
-      cap on Actions does not apply, so runs are unmetered.
+      A typical run takes around 6 to 8 minutes end-to-end, well inside the 6-hour window between runs.
+      Because the repository is public, the 2,000 minute/month cap on Actions does not apply, so all
+      four daily runs are unmetered.
     </p>
   </div>
 
@@ -369,11 +365,11 @@
 
     <p><strong>MiniLM over MPNet</strong></p>
     <p>
-      <code>all-mpnet-base-v2</code> produces marginally better embeddings but takes roughly 3× longer
-      to run. On the bootstrap corpus (~350 articles, day 1) the quality difference is not visible to a human.
+      <code>all-mpnet-base-v2</code> produces marginally better embeddings but takes roughly 3x longer
+      to run. On the bootstrap corpus (~350 articles, run 1) the quality difference is not visible to a human.
       On the full 7-day corpus (~2,500 articles) the difference matters more, but so does keeping each
       run under an hour so that a failed run can be diagnosed and retried within a single working session
-      without overnight waits. MiniLM is the right call at this scale.
+      without waiting for the next scheduled run. MiniLM is the right call at this scale.
     </p>
 
     <p><strong>Two-pass deduplication</strong></p>
@@ -381,25 +377,25 @@
       Cross-publisher coverage of the same event is the main data quality problem. Reuters'
       "Fed holds rates steady" and the BBC's "Federal Reserve keeps interest rates unchanged"
       are the same story and should collapse to one point on the map. A single exact-title pass
-      catches same-publisher re-posts; it misses the main case entirely. The second pass runs
-      after embedding: articles with cosine similarity above 0.87 are collapsed, with the longer-description
-      version kept as canonical and an <code>also_covered_by</code> list appended. This list is then surfaced
+      catches same-publisher re-posts but misses the main case entirely. The second pass runs
+      after embedding: articles with cosine similarity above 0.90 are collapsed, with the longer-description
+      version kept as canonical and an <code>also_covered_by</code> list appended. This list is surfaced
       in the UI. The breadth of coverage across outlets is itself a useful signal worth surfacing.
     </p>
 
     <p><strong>Corpus-fraction HDBSCAN sizing</strong></p>
     <p>
-      A fixed <code>min_cluster_size</code> breaks silently as corpus size varies day to day.
-      Setting it as a fraction of corpus size (<code>1% of N, floored at 8</code>) means the
-      threshold scales naturally. Small bootstrap runs still produce clusters, and large mature
-      runs don't fragment into noise.
+      A fixed <code>min_cluster_size</code> breaks silently as corpus size varies run to run.
+      Setting it as a fraction of corpus size (2% of N, floored at 8) means the threshold scales
+      naturally. Small bootstrap runs still produce clusters, and large mature runs do not fragment
+      into noise.
     </p>
 
     <p><strong>Procrustes alignment for layout stability</strong></p>
     <p>
-      UMAP is stochastic and refits from scratch every day. Without intervention, the 3D cloud
+      UMAP is stochastic and refits from scratch on every run. Without intervention, the 3D cloud
       flips, rotates, and rescales unpredictably between runs, which is disorienting for repeat visitors.
-      After UMAP runs, the new coordinates are aligned to yesterday's via orthogonal Procrustes
+      After UMAP runs, the new coordinates are aligned to the previous run's via orthogonal Procrustes
       (reflection permitted, since UMAP has no preferred handedness) using URL-matched articles
       as anchors. The global frame stays consistent; cluster-internal shuffling is inherent to
       the method and cannot be fully suppressed without sacrificing UMAP quality.
@@ -410,7 +406,7 @@
   <div class="section">
     <h2>Zero-Cost Architecture</h2>
     <p>
-      Every component was chosen with a hard constraint: no recurring infrastructure costs.
+      Every component was chosen with a hard constraint of no recurring infrastructure costs.
       This is not just a budget decision. It removes the risk of the project going dark because
       a free tier expires or a credit card lapses.
     </p>
@@ -457,15 +453,15 @@
         </tr>
         <tr>
           <td>Bot protection</td>
-          <td>Cloudflare Turnstile</td>
-          <td class="cost-free">€0 / unlimited</td>
-          <td>reCAPTCHA v3 requires Google account for dashboard; hCaptcha free tier limits</td>
+          <td>Honeypot + rate limiting</td>
+          <td class="cost-free">€0</td>
+          <td>Turnstile was evaluated but had propagation issues; honeypot covers the main abuse vector</td>
         </tr>
         <tr>
           <td>Subscribe endpoint</td>
           <td>Cloudflare Workers (free tier)</td>
           <td class="cost-free">€0 / 100K req/day</td>
-          <td>Required to keep the Resend API key off the client; no other serverless option at zero cost with this key model</td>
+          <td>Required to keep the Resend API key off the client; no other serverless option at zero cost</td>
         </tr>
         <tr class="cost-total">
           <td colspan="2"><strong>Total monthly cost</strong></td>
@@ -479,10 +475,9 @@
       The Cloudflare Worker deserves elaboration. Resend's key permission model offers only
       <code>full_access</code> or <code>sending_access</code>. There is no "write contacts only" scope.
       This means no Resend key is safe to embed in client-side JavaScript on a public page.
-      The Worker holds the key as a server-side secret, verifies the Turnstile token against Cloudflare's
-      siteverify API before making any Resend call, and is CORS-locked to the GitHub Pages origin.
-      Three abuse-mitigation layers stack on top: server-side Turnstile verification, an invisible
-      honeypot field, and a 3-second per-tab rate limit in the browser.
+      The Worker holds the key as a server-side secret and is CORS-locked to the GitHub Pages origin.
+      An invisible honeypot field and a 3-second per-tab rate limit in the browser sit in front of it
+      as additional abuse-mitigation layers.
     </p>
   </div>
 
@@ -494,33 +489,32 @@
       <div class="callout-label">Limitation</div>
       <strong>UMAP cluster drift.</strong> Procrustes alignment locks the global orientation but cannot
       prevent clusters from shuffling positions relative to each other when UMAP's internal graph
-      changes. Over long runs, alignment error accumulates roughly as epsilon times the square root of n. With epsilon around 1.0 in UMAP units
-      this is around 4 to 5 units of drift over a month, visible but tolerable.
+      changes between runs. Over long horizons, alignment error accumulates roughly as epsilon times
+      the square root of n. With epsilon around 1.0 in UMAP units this is around 4 to 5 units of drift
+      over a month, visible but tolerable, and logged daily for monitoring.
     </div>
 
     <div class="callout problem">
       <div class="callout-label">Limitation</div>
-      <strong>RSS sampling gap.</strong> Feeds are fetched once per day at 02:00 UTC. High-volume
-      publishers rotate items faster than 24 hours, so some articles that existed briefly in a feed between
-      fetches are missed entirely. A v2 improvement would be hourly fetches merging into the store,
-      with the expensive embed and cluster step still running once daily. This roughly doubles pipeline complexity
-      and is held for a later iteration.
+      <strong>RSS sampling gap.</strong> Feeds are fetched every 6 hours. High-volume publishers
+      rotate items faster than this window, so some articles that existed briefly in a feed between
+      fetches are missed. Hourly fetching would close this gap further but was left for a later iteration
+      as it roughly doubles pipeline complexity without improving cluster quality meaningfully at current scale.
     </div>
 
     <div class="callout tradeoff">
       <div class="callout-label">Tradeoff</div>
-      <strong>Resend free tier scales to 100 subscribers.</strong> Sends to an audience count
-      per-subscriber, so the digest works for the first 100 subscribers on the free tier.
-      A paid plan ($20/month) removes this cap. At current scale this is not a constraint.
+      <strong>Resend free tier scales to 100 subscribers.</strong> The digest sends to each subscriber
+      individually, so the free tier supports up to 100 subscribers before a paid plan is needed.
+      At current scale this is not a constraint.
     </div>
 
     <div class="callout tradeoff">
       <div class="callout-label">Tradeoff</div>
       <strong>Repository growth.</strong> The pipeline commits approximately 1.3MB of compressed delta
-      per daily run. Cumulatively this crosses GitHub's 1GB soft recommendation after roughly two years.
-      The fix at that point is a one-off <code>git filter-repo</code> squash of old rebuild commits,
-      or migrating generated files to an orphan <code>data</code> branch served via raw.githubusercontent.com.
-      Neither is needed in v1.
+      per run, which becomes around 2GB per year at 4 runs per day. The fix when needed is a one-off
+      <code>git filter-repo</code> squash of old rebuild commits, or migrating generated files to an
+      orphan <code>data</code> branch. Neither is needed in v1.
     </div>
 
     <div class="callout tradeoff">
@@ -528,7 +522,7 @@
       <strong>Scheduled workflow auto-disable.</strong> GitHub disables scheduled workflows in public
       repositories after 60 days without a commit. The pipeline avoids this implicitly because every
       successful run commits updated data, resetting the clock. A failure notification step catches
-      silent pipeline failures within 24 hours, long before 60 consecutive failed days become a risk.
+      silent pipeline failures within 6 hours, long before 60 consecutive failed runs become a risk.
     </div>
   </div>
 
@@ -547,11 +541,11 @@
         <tr><td>Topic labelling</td><td>c-TF-IDF via <code>sklearn</code> CountVectorizer + substring dedup</td></tr>
         <tr><td>Layout alignment</td><td>Orthogonal Procrustes (reflection permitted) via <code>numpy</code> SVD</td></tr>
         <tr><td>RSS parsing</td><td><code>feedparser</code> 6.0.11</td></tr>
-        <tr><td>Email API</td><td>Resend Broadcasts HTTP API via <code>requests</code></td></tr>
+        <tr><td>Email API</td><td>Resend HTTP API via <code>requests</code></td></tr>
         <tr><td>Visualization</td><td>Three.js r128, OrbitControls, canvas sprite texture</td></tr>
         <tr><td>Subscribe endpoint</td><td>Cloudflare Worker (JavaScript), Wrangler deploy</td></tr>
-        <tr><td>Abuse protection</td><td>Cloudflare Turnstile (server-side verify) + honeypot + rate limit</td></tr>
-        <tr><td>CI/CD</td><td>GitHub Actions, cron schedule, model caching, git commit and push</td></tr>
+        <tr><td>Abuse protection</td><td>Honeypot field + browser-side rate limit</td></tr>
+        <tr><td>CI/CD</td><td>GitHub Actions, 6-hourly cron, model caching, git commit and push</td></tr>
         <tr><td>Hosting</td><td>GitHub Pages (static, auto-deploy on push to main)</td></tr>
         <tr><td>Dependency management</td><td><code>uv pip compile</code> lockfile + Dependabot weekly PRs</td></tr>
       </tbody>

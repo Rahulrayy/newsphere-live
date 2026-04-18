@@ -203,7 +203,7 @@ def generate_html(d, for_email=False):
   <div style="max-width: 680px; margin: 0 auto; padding: {body_padding};">
     <h1 style="font-size: 22px; font-weight: 500; margin-bottom: 6px;">Daily digest</h1>
     <div style="font-size: 13px; color: #aaa; margin-bottom: 28px;">
-      Generated {d['generated_at']} -- data refreshes every day at 02:00 UTC
+      Generated {d['generated_at']} - data refreshes every 6 hours
     </div>
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 32px;">
       <div style="background:white; border:0.5px solid #e0e0e0; border-radius:10px;
@@ -297,7 +297,7 @@ def digest():
 
     d = build_digest_data(data, diff)
 
-    with open(DIGEST_PATH, "w") as f:
+    with open(DIGEST_PATH, "w", encoding="utf-8") as f:
         f.write(generate_html(d, for_email=False))
     print("digest.html generated")
 

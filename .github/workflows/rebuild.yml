@@ -1,8 +1,8 @@
-name: Daily news map rebuild
+name: News map rebuild
 
 on:
   schedule:
-    - cron: '0 2 * * *'
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 
 permissions:
@@ -61,7 +61,7 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/ digest.html
-          git diff --cached --quiet || git commit -m "chore: daily rebuild $(date -u '+%Y-%m-%d')"
+          git diff --cached --quiet || git commit -m "chore: rebuild $(date -u '+%Y-%m-%d %H:%M UTC')"
           git push
 
       - name: Notify on failure
