@@ -47,7 +47,7 @@ def merge_and_prune(fresh_articles, days_back=7):
             kept.append(a)
 
     kept.sort(key=lambda a: a.get("date", ""), reverse=True)
-
+    kept = kept[:20_000]  # hard cap.... sorted newest-first so oldest get dropped
     print(f"store: {len(existing)} existing + {len(fresh_articles)} fresh "
           f"-> {len(kept)} after merge+prune")
     return kept
