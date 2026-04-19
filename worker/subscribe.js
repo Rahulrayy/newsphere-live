@@ -31,19 +31,22 @@ export default {
       return jsonResp({ error: "invalid email" }, 400, origin, allowed);
     }
 
-    const rsResp = await fetch(
-      `https://api.resend.com/audiences/${env.RESEND_AUDIENCE_ID}/contacts`,
+    const brevoResp = await fetch(
+      "https://api.brevo.com/v3/contacts",
       {
         method:  "POST",
         headers: {
-          Authorization:  `Bearer ${env.RESEND_API_KEY}`,
+          "api-key":      env.BREVO_API_KEY,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, unsubscribed: false }),
+        body: JSON.stringify({
+          email,
+          updateEnabled: true,
+        }),
       }
     );
 
-    if (rsResp.ok || rsResp.status === 409) {
+    if (brevoResp.ok || brevoResp.status === 204) {
       return jsonResp({ ok: true }, 200, origin, allowed);
     }
 
