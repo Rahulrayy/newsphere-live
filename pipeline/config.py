@@ -56,7 +56,7 @@ DAYS_BACK                 = 7
 EMBED_MODEL               = "all-MiniLM-L6-v2"
 EMBED_BATCH_SIZE          = 64
 
-DEDUPE_THRESHOLD          = 0.90
+DEDUPE_THRESHOLD          = 0.94
 
 UMAP_NEIGHBORS            = 20
 UMAP_MIN_DIST             = 0.1
@@ -64,16 +64,16 @@ UMAP_COMPONENTS           = 3
 UMAP_METRIC               = "cosine"
 UMAP_RANDOM_STATE         = 42
 
-HDBSCAN_MIN_SIZE_FRACTION = 0.020
+HDBSCAN_MIN_SIZE_FRACTION = 0.018
 HDBSCAN_MIN_SIZE_FLOOR    = 8
-HDBSCAN_MIN_SAMPLES       = 5
+HDBSCAN_MIN_SAMPLES       = 4
 HDBSCAN_METHOD            = "eom"
 
 TFIDF_NGRAM_RANGE         = (1, 2)
 TFIDF_MAX_FEATURES        = 5000
 TFIDF_TOP_N               = 3
 
-MIN_CLUSTERS              = 5
+MIN_CLUSTERS              = 4
 
 OUTPUT_PATH               = "data/news_map.json"
 PREVIOUS_PATH             = "data/news_map_previous.json"
