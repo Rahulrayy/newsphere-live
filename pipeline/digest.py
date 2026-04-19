@@ -232,53 +232,80 @@ def generate_html(d, for_email=False):
 </html>"""
 
 
-def send_email_digest(d):
-    brevo_api_key = os.environ.get("BREVO_API_KEY")
-    if not brevo_api_key:
-        print("Brevo API key not configured, skipping email")
-        return
+def get_brevo_subscribers(api_key):
+    """
+    Fetch all subscribed contacts from Brevo.
+    GET /v3/contacts returns {"contacts": [...], "count": N}
+    Each contact has: email, id, emailBlacklisted, smsBlacklisted, etc.
+    """
+    all_emails = []
+    limit      = 50
+    offset     = 0
 
-    subject  = (f"Newsphere Live - {d['n_clusters']} topics, "
-                f"{d['n_new']} new articles today")
-    html     = generate_html(d, for_email=True)
-
-    try:
+    while True:
         resp = requests.get(
             "https://api.brevo.com/v3/contacts",
-            headers={
-                "api-key": brevo_api_key,
-                "Content-Type": "application/json",
-            },
-            params={"limit": 1000, "offset": 0},
+            headers={"api-key": api_key},
+            params={"limit": limit, "offset": offset, "sort": "desc"},
             timeout=30,
         )
         resp.raise_for_status()
-        contacts = resp.json().get("contacts", [])
-        subscribed = [c["email"] for c in contacts]
+        data     = resp.json()
+        contacts = data.get("contacts", [])
+        total    = data.get("count", 0)
 
-        if not subscribed:
+        for c in contacts:
+            email_addr = c.get("email")
+            blacklisted = c.get("emailBlacklisted", False)
+            if email_addr and not blacklisted:
+                all_emails.append(email_addr)
+
+        offset += limit
+        if offset >= total or not contacts:
+            break
+
+    return all_emails
+
+
+def send_email_digest(d):
+    api_key = os.environ.get("BREVO_API_KEY")
+    if not api_key:
+        print("Brevo API key not configured, skipping email")
+        return
+
+    subject = (f"Newsphere Live - {d['n_clusters']} topics, "
+               f"{d['n_new']} new articles today")
+    html    = generate_html(d, for_email=True)
+
+    try:
+        subscribers = get_brevo_subscribers(api_key)
+        print(f"found {len(subscribers)} subscribers in Brevo")
+
+        if not subscribers:
             print("no subscribers yet, skipping email send")
             return
 
-        for email in subscribed:
+        sent = 0
+        for email_addr in subscribers:
             r = requests.post(
                 "https://api.brevo.com/v3/smtp/email",
                 headers={
-                    "api-key": brevo_api_key,
+                    "api-key":      api_key,
                     "Content-Type": "application/json",
                 },
                 json={
-                    "sender":     {"name": "Newsphere Live", "email": "rahulrayy05@gmail.com"},
-                    "to":         [{"email": email}],
-                    "subject":    subject,
+                    "sender":      {"name": "Newsphere Live", "email": "rahulrayy05@gmail.com"},
+                    "to":          [{"email": email_addr}],
+                    "subject":     subject,
                     "htmlContent": html,
                 },
                 timeout=30,
             )
             r.raise_for_status()
-            print(f"sent digest to {email}")
+            sent += 1
+            print(f"sent to {email_addr}")
 
-        print(f"digest sent to {len(subscribed)} subscribers")
+        print(f"digest sent to {sent} subscribers")
 
     except requests.HTTPError as e:
         print(f"Brevo API error {e.response.status_code}: {e.response.text}")
