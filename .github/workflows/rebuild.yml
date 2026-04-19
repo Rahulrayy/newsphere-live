@@ -51,9 +51,7 @@ jobs:
 
       - name: Generate digest and send emails
         env:
-          RESEND_API_KEY:     ${{ secrets.RESEND_API_KEY }}
-          RESEND_AUDIENCE_ID: ${{ secrets.RESEND_AUDIENCE_ID }}
-          RESEND_FROM_EMAIL:  ${{ secrets.RESEND_FROM_EMAIL }}
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
         run: python pipeline/digest.py
 
       - name: Commit and push
@@ -68,17 +66,17 @@ jobs:
         if: failure()
         env:
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          ALERT_EMAIL:   ${{ secrets.ALERT_EMAIL }}
         run: |
           python -c "
           import os, requests
-          headers = {
-              'Authorization': f'Bearer {os.environ[\"RESEND_API_KEY\"]}',
+          requests.post('https://api.brevo.com/v3/smtp/email', headers={
+              'api-key': os.environ['BREVO_API_KEY'],
               'Content-Type': 'application/json',
-          }
-          requests.post('https://api.resend.com/emails', headers=headers, json={
-              'from':    os.environ['RESEND_FROM_EMAIL'],
-              'to':      [os.environ['ALERT_EMAIL']],
+          }, json={
+              'sender': {'name': 'Newsphere Live', 'email': 'rahulrayy05@gmail.com'},
+              'to': [{'email': os.environ['ALERT_EMAIL']}],
               'subject': 'Newsphere Live pipeline failed',
-              'html':    '<p>Pipeline failed. Check the Actions tab.</p>',
+              'htmlContent': '<p>Pipeline failed. Check the Actions tab.</p>',
           })
           "
