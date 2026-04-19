@@ -294,7 +294,7 @@ def send_email_digest(d):
                     "Content-Type": "application/json",
                 },
                 json={
-                    "sender":      {"name": "Newsphere Live", "email": "rahulrayy05@gmail.com"},
+                    "sender":      {"name": "Newsphere Live", "email": "noreply@rahulrayy05.brevosend.com"},
                     "to":          [{"email": email_addr}],
                     "subject":     subject,
                     "htmlContent": html,
