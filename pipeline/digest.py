@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import requests
 
@@ -160,6 +161,22 @@ def generate_html(d, for_email=False):
           }
         </script>"""
 
+    footer = "" if for_email else """
+  <div style="max-width: 680px; margin: 0 auto; padding: 0 24px 48px;
+              border-top: 0.5px solid #e0e0e0; margin-top: 48px;
+              display: flex; justify-content: space-between; align-items: center;
+              font-size: 12px; color: #aaa;">
+    <span>Rahul Ray</span>
+    <span style="display: flex; gap: 16px;">
+      <a href="https://rahulrayy.github.io/Corpus-Map/index.html" target="_blank"
+         style="color: #aaa; text-decoration: none;">Original Newsphere</a>
+      <a href="https://github.com/Rahulrayy/newsphere-live" target="_blank"
+         style="color: #aaa; text-decoration: none;">GitHub</a>
+      <a href="https://www.linkedin.com/in/rahul-ray-b67741222/" target="_blank"
+         style="color: #aaa; text-decoration: none;">LinkedIn</a>
+    </span>
+  </div>"""
+
     nav = "" if for_email else """
   <nav style="position:fixed; top:0; left:0; right:0; height:48px; background:white;
               border-bottom:0.5px solid #e0e0e0; display:flex; align-items:center;
@@ -182,7 +199,7 @@ def generate_html(d, for_email=False):
       Open the live map
     </a>"""
 
-    body_padding = "80px 24px 80px" if not for_email else "32px 24px"
+    body_padding = "80px 24px 48px" if not for_email else "32px 24px"
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -228,16 +245,12 @@ def generate_html(d, for_email=False):
     {open_map_btn}
     {subscribe_section}
   </div>
+  {footer}
 </body>
 </html>"""
 
 
 def get_brevo_subscribers(api_key):
-    """
-    Fetch all subscribed contacts from Brevo.
-    GET /v3/contacts returns {"contacts": [...], "count": N}
-    Each contact has: email, id, emailBlacklisted, smsBlacklisted, etc.
-    """
     all_emails = []
     limit      = 50
     offset     = 0
@@ -255,7 +268,7 @@ def get_brevo_subscribers(api_key):
         total    = data.get("count", 0)
 
         for c in contacts:
-            email_addr = c.get("email")
+            email_addr  = c.get("email")
             blacklisted = c.get("emailBlacklisted", False)
             if email_addr and not blacklisted:
                 all_emails.append(email_addr)
@@ -313,7 +326,7 @@ def send_email_digest(d):
         print(f"email send failed: {e}")
 
 
-def digest():
+def digest(send_email=True, generate_page=True):
     with open(OUTPUT_PATH) as f:
         data = json.load(f)
 
@@ -325,12 +338,19 @@ def digest():
 
     d = build_digest_data(data, diff)
 
-    with open(DIGEST_PATH, "w", encoding="utf-8") as f:
-        f.write(generate_html(d, for_email=False))
-    print("digest.html generated")
+    if generate_page:
+        with open(DIGEST_PATH, "w", encoding="utf-8") as f:
+            f.write(generate_html(d, for_email=False))
+        print("digest.html generated")
 
-    send_email_digest(d)
+    if send_email:
+        send_email_digest(d)
 
 
 if __name__ == "__main__":
-    digest()
+    email_only = "--email-only" in sys.argv
+    no_email   = "--no-email"   in sys.argv
+    digest(
+        send_email=not no_email,
+        generate_page=not email_only,
+    )
