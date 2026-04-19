@@ -67,9 +67,7 @@ jobs:
       - name: Notify on failure
         if: failure()
         env:
-          RESEND_API_KEY:    ${{ secrets.RESEND_API_KEY }}
-          RESEND_FROM_EMAIL: ${{ secrets.RESEND_FROM_EMAIL }}
-          ALERT_EMAIL:       ${{ secrets.ALERT_EMAIL }}
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
         run: |
           python -c "
           import os, requests

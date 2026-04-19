@@ -233,44 +233,45 @@ def generate_html(d, for_email=False):
 
 
 def send_email_digest(d):
-    if not RESEND_API_KEY or not RESEND_AUDIENCE_ID:
-        print("Resend credentials not configured, skipping email")
+    brevo_api_key = os.environ.get("BREVO_API_KEY")
+    if not brevo_api_key:
+        print("Brevo API key not configured, skipping email")
         return
 
     subject  = (f"Newsphere Live - {d['n_clusters']} topics, "
                 f"{d['n_new']} new articles today")
     html     = generate_html(d, for_email=True)
 
-    headers = {
-        "Authorization": f"Bearer {RESEND_API_KEY}",
-        "Content-Type":  "application/json",
-    }
-
     try:
-        # fetch all contacts from the audience
         resp = requests.get(
-            f"https://api.resend.com/audiences/{RESEND_AUDIENCE_ID}/contacts",
-            headers=headers,
+            "https://api.brevo.com/v3/contacts",
+            headers={
+                "api-key": brevo_api_key,
+                "Content-Type": "application/json",
+            },
+            params={"limit": 1000, "offset": 0},
             timeout=30,
         )
         resp.raise_for_status()
-        contacts = resp.json().get("data", [])
-        subscribed = [c["email"] for c in contacts if not c.get("unsubscribed", False)]
+        contacts = resp.json().get("contacts", [])
+        subscribed = [c["email"] for c in contacts]
 
         if not subscribed:
             print("no subscribers yet, skipping email send")
             return
 
-        # send to each subscriber individually
         for email in subscribed:
             r = requests.post(
-                "https://api.resend.com/emails",
-                headers=headers,
+                "https://api.brevo.com/v3/smtp/email",
+                headers={
+                    "api-key": brevo_api_key,
+                    "Content-Type": "application/json",
+                },
                 json={
-                    "from":    "Newsphere Live <onboarding@resend.dev>",
-                    "to":      [email],
-                    "subject": subject,
-                    "html":    html,
+                    "sender":     {"name": "Newsphere Live", "email": "rahulrayy05@gmail.com"},
+                    "to":         [{"email": email}],
+                    "subject":    subject,
+                    "htmlContent": html,
                 },
                 timeout=30,
             )
@@ -280,7 +281,7 @@ def send_email_digest(d):
         print(f"digest sent to {len(subscribed)} subscribers")
 
     except requests.HTTPError as e:
-        print(f"Resend API error {e.response.status_code}: {e.response.text}")
+        print(f"Brevo API error {e.response.status_code}: {e.response.text}")
     except Exception as e:
         print(f"email send failed: {e}")
 
