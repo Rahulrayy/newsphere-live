@@ -26,7 +26,7 @@ Because UMAP is stochastic, the layout would normally flip and rotate unpredicta
 
 ## Background
 
-This project is a standalone successor to [Newsphere](https://rahulrayy.github.io/Corpus-Map/index.html), a static semantic map of 7,000 news articles from 2018 built as a personal project while studying Computational Social Science at Leiden University. That project included quantitative evaluation of cluster quality using silhouette scores and topic coherence metrics across different parameter settings. The architecture of Newsphere Live reflects those findings directly — the HDBSCAN minimum cluster size fraction, cosine similarity dedup threshold, and UMAP neighbourhood parameter were all informed by what worked and what did not in the static version.
+This project is a standalone successor to [Newsphere](https://rahulrayy.github.io/Corpus-Map/index.html), a static semantic map of 7,000 news articles from 2018 built as a personal project while studying at Leiden University. That project included quantitative evaluation of cluster quality using silhouette scores and topic coherence metrics across different parameter settings. The architecture of Newsphere Live reflects those findings directly — the HDBSCAN minimum cluster size fraction, cosine similarity dedup threshold, and UMAP neighbourhood parameter were all informed by what worked and what did not in the static version.
 
 The original Newsphere site remains unchanged as a self-contained portfolio piece.
 
