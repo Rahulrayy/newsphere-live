@@ -75,6 +75,10 @@ TFIDF_TOP_N               = 3
 
 MIN_CLUSTERS              = 2
 
+# smallest per-axis std the 3D layout is allowed to have. raw UMAP output
+# sits around 1-5 per axis, anything near zero means the map has collapsed
+MIN_COORD_SPREAD          = 0.05
+
 OUTPUT_PATH               = "data/news_map.json"
 PREVIOUS_PATH             = "data/news_map_previous.json"
 DIFF_PATH                 = "data/news_map_diff.json"
