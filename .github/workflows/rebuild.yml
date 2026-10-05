@@ -35,11 +35,13 @@ jobs:
         run: python pipeline/diff.py
       - name: Validate output
         run: python pipeline/validate.py
-      - name: Generate digest and send emails
+      - name: Generate digest page
+        run: python pipeline/digest.py --no-email
+      - name: Send digest emails
         if: github.event_name == 'schedule'
         env:
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
-        run: python pipeline/digest.py
+        run: python pipeline/digest.py --email-only
       - name: Commit and push
         run: |
           git config user.name  "github-actions[bot]"

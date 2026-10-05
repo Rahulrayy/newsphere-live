@@ -6,6 +6,8 @@ NEWS_STOPWORDS = {
     "new", "year", "years", "week", "day", "time", "times",
     "people", "like", "just", "also", "would", "could",
     "one", "two", "first", "last",
+    # backstop for feed boilerplate that slips past fetch_articles cleaning
+    "continue", "reading", "published", "online", "doi", "source",
 }
 
 
