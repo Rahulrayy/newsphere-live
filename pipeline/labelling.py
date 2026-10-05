@@ -43,6 +43,14 @@ def _dedupe_substrings(candidates, k):
 
 
 def label_clusters(articles, labels, unique_cluster_ids, top_n=3):
+    out = {-1: "noise"}
+
+    # hdbscan can come back with nothing (all noise), let validate.py
+    # flag that properly instead of crashing in the vectoriser
+    if not unique_cluster_ids:
+        print("labelling: no clusters to label, skipping")
+        return out
+
     cluster_docs = []
     for cid in unique_cluster_ids:
         texts = [articles[i]["content"]
@@ -51,16 +59,21 @@ def label_clusters(articles, labels, unique_cluster_ids, top_n=3):
 
     stop_words = list(ENGLISH_STOP_WORDS.union(NEWS_STOPWORDS))
 
-    scores, vocab = _c_tf_idf(
-        cluster_docs,
-        ngram_range=(1, 2),
-        stop_words=stop_words,
-        max_features=5000,
-        min_df=2,
-    )
+    try:
+        scores, vocab = _c_tf_idf(
+            cluster_docs,
+            ngram_range=(1, 2),
+            stop_words=stop_words,
+            max_features=5000,
+            min_df=2,
+        )
+    except ValueError as e:
+        # min_df=2 leaves an empty vocab when there's only one cluster doc
+        print(f"labelling: c-tf-idf failed ({e}), marking unlabelled")
+        out.update({cid: "unlabelled" for cid in unique_cluster_ids})
+        return out
 
     candidate_pool = max(top_n * 4, 10)
-    out = {-1: "noise"}
 
     for row_idx, cid in enumerate(unique_cluster_ids):
         row        = scores[row_idx]
