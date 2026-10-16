@@ -68,12 +68,16 @@ HDBSCAN_MIN_SIZE_FRACTION = 0.010
 HDBSCAN_MIN_SIZE_FLOOR    = 8
 HDBSCAN_MIN_SAMPLES       = 3
 HDBSCAN_METHOD            = "eom"
+# eom sometimes picks one giant parent over all its children (sport vs
+# "everything else", 2 topics). capping cluster size stops that, normal runs
+# never have a topic above ~15% so this only kicks in on the bad ones
+HDBSCAN_MAX_SIZE_FRACTION = 0.25
 
 TFIDF_NGRAM_RANGE         = (1, 2)
 TFIDF_MAX_FEATURES        = 5000
 TFIDF_TOP_N               = 3
 
-MIN_CLUSTERS              = 2
+MIN_CLUSTERS              = 5   # healthy runs have 20+, 2 means hdbscan merged everything
 
 # smallest per-axis std the 3D layout is allowed to have. raw UMAP output
 # sits around 1-5 per axis, anything near zero means the map has collapsed

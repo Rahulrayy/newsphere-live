@@ -11,7 +11,7 @@ from config import (
     UMAP_NEIGHBORS, UMAP_MIN_DIST, UMAP_COMPONENTS,
     UMAP_METRIC, UMAP_RANDOM_STATE,
     HDBSCAN_MIN_SIZE_FRACTION, HDBSCAN_MIN_SIZE_FLOOR,
-    HDBSCAN_MIN_SAMPLES, HDBSCAN_METHOD,
+    HDBSCAN_MIN_SAMPLES, HDBSCAN_METHOD, HDBSCAN_MAX_SIZE_FRACTION,
     TFIDF_TOP_N,
     OUTPUT_PATH, PREVIOUS_PATH,
 )
@@ -62,6 +62,7 @@ def cluster():
         min_cluster_size=min_size,
         min_samples=HDBSCAN_MIN_SAMPLES,
         cluster_selection_method=HDBSCAN_METHOD,
+        max_cluster_size=int(len(articles) * HDBSCAN_MAX_SIZE_FRACTION),
         gen_min_span_tree=True,
     )
     labels = clusterer.fit_predict(coords)
