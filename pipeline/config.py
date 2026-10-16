@@ -89,6 +89,13 @@ DIFF_PATH                 = "data/news_map_diff.json"
 STORE_PATH                = "data/article_store.json"
 STATUS_LOG_PATH           = "data/status_log.jsonl"
 DIGEST_PATH               = "digest.html"
+DIGEST_SENT_PATH          = "data/last_digest_sent.json"
+
+# scheduled runs fire every 6h (and github often starts them hours late), so
+# instead of guessing which run is "the morning one" just skip sending if the
+# last digest went out less than this long ago. 20h keeps it to once a day
+# even when the runs drift around
+DIGEST_MIN_INTERVAL_HOURS = 20
 
 SITE_URL                  = "https://rahulrayy.github.io/newsphere-live"
 

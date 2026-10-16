@@ -2,9 +2,11 @@ import os
 import sys
 import json
 import requests
+from datetime import datetime, timezone, timedelta
 
 from config import (
     OUTPUT_PATH, DIFF_PATH, DIGEST_PATH,
+    DIGEST_SENT_PATH, DIGEST_MIN_INTERVAL_HOURS,
     SITE_URL, BREVO_API_KEY,
 )
 
@@ -280,16 +282,39 @@ def get_brevo_subscribers(api_key):
     return all_emails
 
 
+def _last_sent():
+    try:
+        with open(DIGEST_SENT_PATH) as f:
+            return datetime.fromisoformat(json.load(f)["sent_at"])
+    except (FileNotFoundError, KeyError, ValueError, json.JSONDecodeError):
+        return None
+
+
+def _mark_sent(n_sent):
+    with open(DIGEST_SENT_PATH, "w") as f:
+        json.dump({
+            "sent_at": datetime.now(timezone.utc).isoformat(),
+            "n_sent":  n_sent,
+        }, f)
+
+
 def send_email_digest(d):
     api_key = os.environ.get("BREVO_API_KEY")
     if not api_key:
         print("Brevo API key not configured, skipping email")
         return
 
+    last = _last_sent()
+    if last and datetime.now(timezone.utc) - last < timedelta(hours=DIGEST_MIN_INTERVAL_HOURS):
+        print(f"digest already sent at {last:%Y-%m-%d %H:%M} UTC, "
+              f"next one after {DIGEST_MIN_INTERVAL_HOURS}h, skipping")
+        return
+
     subject = (f"Newsphere Live - {d['n_clusters']} topics, "
                f"{d['n_new']} new articles today")
     html    = generate_html(d, for_email=True)
 
+    sent = 0
     try:
         subscribers = get_brevo_subscribers(api_key)
         print(f"found {len(subscribers)} subscribers in Brevo")
@@ -298,7 +323,6 @@ def send_email_digest(d):
             print("no subscribers yet, skipping email send")
             return
 
-        sent = 0
         for email_addr in subscribers:
             r = requests.post(
                 "https://api.brevo.com/v3/smtp/email",
@@ -316,7 +340,6 @@ def send_email_digest(d):
             )
             r.raise_for_status()
             sent += 1
-            print(f"sent to {email_addr}")
 
         print(f"digest sent to {sent} subscribers")
 
@@ -324,6 +347,11 @@ def send_email_digest(d):
         print(f"Brevo API error {e.response.status_code}: {e.response.text}")
     except Exception as e:
         print(f"email send failed: {e}")
+    finally:
+        # record even a partial send, otherwise the next run (6h later) would
+        # email everyone who already got it today a second time
+        if sent:
+            _mark_sent(sent)
 
 
 def digest(send_email=True, generate_page=True):
