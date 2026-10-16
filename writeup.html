@@ -328,12 +328,12 @@
       <div class="pipe-connector">↓</div>
       <div class="pipe-step">
         <span class="pipe-name">validate.py</span>
-        <span class="pipe-desc">adaptive quality checks, exit(1) on failure to block bad commits</span>
+        <span class="pipe-desc">size, cluster-count and layout-spread checks, exit(1) on failure to block bad commits</span>
       </div>
       <div class="pipe-connector">↓</div>
       <div class="pipe-step">
         <span class="pipe-name">digest.py</span>
-        <span class="pipe-desc">generate digest.html, send Resend email to subscribers</span>
+        <span class="pipe-desc">rebuild digest.html every run, email subscribers on scheduled runs only</span>
       </div>
       <div class="pipe-connector">↓</div>
       <div class="pipe-step">
@@ -386,18 +386,20 @@
     <p><strong>Corpus-fraction HDBSCAN sizing</strong></p>
     <p>
       A fixed <code>min_cluster_size</code> breaks silently as corpus size varies run to run.
-      Setting it as a fraction of corpus size (2% of N, floored at 8) means the threshold scales
+      Setting it as a fraction of corpus size (1% of N, floored at 8) means the threshold scales
       naturally. Small bootstrap runs still produce clusters, and large mature runs do not fragment
-      into noise.
+      into noise. Since October there is also an upper bound: no single cluster can hold more than
+      25% of the corpus. Why that was needed is explained in the section below.
     </p>
 
     <p><strong>Procrustes alignment for layout stability</strong></p>
     <p>
       UMAP is stochastic and refits from scratch on every run. Without intervention, the 3D cloud
-      flips, rotates, and rescales unpredictably between runs, which is disorienting for repeat visitors.
+      flips and rotates unpredictably between runs, which is disorienting for repeat visitors.
       After UMAP runs, the new coordinates are aligned to the previous run's via orthogonal Procrustes
-      (reflection permitted, since UMAP has no preferred handedness) using URL-matched articles
-      as anchors. The global frame stays consistent; cluster-internal shuffling is inherent to
+      using URL-matched articles as anchors. The alignment is deliberately limited to a proper rotation
+      plus a translation. An earlier version also fitted a scale factor, and that turned out to be the
+      single worst decision in the project (see below). The global frame stays consistent; cluster-internal shuffling is inherent to
       the method and cannot be fully suppressed without sacrificing UMAP quality.
     </p>
   </div>
@@ -481,7 +483,118 @@
     </p>
   </div>
 
-  <!-- 5. Known limitations -->
+
+  <!-- 5. What went wrong -->
+  <div class="section">
+    <h2>What Went Wrong (and How I Fixed It)</h2>
+    <p>
+      For a good part of the summer the map was quietly broken, and the pipeline kept telling me
+      everything was fine. I think this is the most useful part of the write-up, because none of the
+      three problems below were bugs in the usual sense. Every step did exactly what I had written.
+      The failures came from how the steps interacted over hundreds of runs.
+    </p>
+
+    <p><strong>1. The map shrank until it was a single point</strong></p>
+    <div class="callout problem">
+      <div class="callout-label">Symptom</div>
+      From late July, every run reported exactly 2 clusters, and from early October some runs started
+      crashing in the labelling step with <code>ValueError: empty vocabulary</code>. When I finally
+      opened <code>news_map.json</code>, all ~3,400 articles had the identical coordinate
+      <code>(-3.2881, -12.1367, -3.1113)</code>.
+    </div>
+    <p>
+      Going back through the git history, which conveniently stores every run's output, showed that
+      this had not happened suddenly. The spread of the coordinates fell on every single run from the
+      very first one in April:
+    </p>
+    <table class="compare-table">
+      <thead><tr><th>Date</th><th>Coordinate std</th><th>Distinct positions</th></tr></thead>
+      <tbody>
+        <tr><td>17 Apr</td><td>~1.0</td><td>356 / 356</td></tr>
+        <tr><td>4 May</td><td>~0.04</td><td>all</td></tr>
+        <tr><td>31 May</td><td>~0.003</td><td>~4,100</td></tr>
+        <tr><td>26 Jun</td><td>~0.0001</td><td>28</td></tr>
+        <tr><td>23 Jul onwards</td><td>0</td><td>1</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The culprit was the scale term in the Procrustes step. The least-squares scale is
+      <code style="white-space:nowrap">trace(S)&nbsp;/&nbsp;||A||²</code>, which is the correct formula, but when the two point sets only
+      partly correspond (a different article set and a fresh UMAP fit every time) the optimal scale
+      comes out a little below 1. This is the same attenuation you get from fitting a regression slope
+      to noisy data. On its own, a 5 to 10% shrink is harmless. The problem is that every run aligns
+      to the <em>previous run's output</em>, so the shrink compounds, four times a day, for three months.
+    </p>
+    <p>
+      Two details made it permanent. Coordinates are rounded to 4 decimals on export, so once the whole
+      map was smaller than about 1e-4 the points started merging. And once every target point was
+      identical, the centred target matrix was all zeros, the SVD gave <code>S = 0</code>, the scale
+      became exactly 0, and every new layout was crushed onto that one point. It was a stable state the
+      system could not get out of. The "2 clusters" were HDBSCAN breaking ties on ~3,400 copies of the
+      same point, and the crashes were the runs where the tie-break gave 0 clusters instead.
+    </p>
+    <div class="callout solution">
+      <div class="callout-label">Fix</div>
+      The alignment now fits rotation and translation only, with an explicit determinant check so it
+      returns a proper rotation rather than a reflection. It also refuses to align at all when the
+      previous layout is degenerate, which is how the live map got out of the collapsed state on its
+      own. I simulated 200 consecutive noisy runs to check it: the spread stays flat at around 3.3,
+      where the old code shrank it every run.
+    </div>
+
+    <p><strong>2. The validator was checking the wrong things</strong></p>
+    <p>
+      <code>validate.py</code> was meant to stop exactly this kind of failure, but it only counted
+      points and clusters. A map with 3,400 points and 2 clusters passed every time, even though all
+      the points sat on top of each other. It now also checks the spread of the layout (any axis below
+      0.05 fails the run), and the minimum cluster count went from 2 to 5. Healthy runs have 20 or
+      more, so 2 was never really a meaningful floor. When validation fails, nothing is committed and
+      the previous good map stays live. The labelling step was also fixed so that zero or one cluster
+      produces a clean validation failure instead of a traceback.
+    </p>
+
+    <p><strong>3. HDBSCAN occasionally merged everything into two topics</strong></p>
+    <p>
+      Even with a healthy layout, about one run in 35 still came out with 2 topics, for example
+      "league game manchester" (426 articles) against "president ai war" (3,084) with zero noise. This
+      is a known behaviour of HDBSCAN's <em>excess of mass</em> selection: sometimes a large parent
+      cluster in the condensed tree looks more stable than all of its children combined, so it keeps
+      the parent. Sport separates cleanly from everything else, so "sport vs. not sport" wins. It is a
+      near tie, too. Re-running one of these bad layouts with nothing but float rounding differences
+      flipped the result between 2 and 23 clusters.
+    </p>
+    <div class="callout solution">
+      <div class="callout-label">Fix</div>
+      I added <code>max_cluster_size</code> at 25% of the corpus, which forces EOM to go down into the
+      children. Replaying it on the saved output of all 34 runs since the layout fix, it changed only
+      the 2 bad runs (to 23 and 24 topics) and left the other 32 identical. The result was the same for
+      any cap between 10% and 40%, so the exact value is not fragile. I also tried <code>leaf</code>
+      selection, which avoids the merge too, but it labels 30 to 40% of articles as noise on every run,
+      so it was the worse trade.
+    </div>
+
+    <p><strong>Smaller things found along the way</strong></p>
+    <p>
+      Some cluster labels were really feed boilerplate: "nature published published online 1038" came
+      from Nature's DOI header, and "continue reading trump" from the Guardian's RSS truncation. The
+      "8230" in "save 8230 discounts" was an HTML entity (<code>&amp;#8230;</code>, an ellipsis) that
+      my cleaning regex missed because it only handled named entities. The fetch step now decodes all
+      entities with <code>html.unescape</code> and strips the common publisher boilerplate, including
+      for articles already in the store. Separately, the digest page was only regenerated on scheduled
+      runs, so a manual rebuild left it stale. It is now rebuilt on every run.
+    </p>
+
+    <div class="callout tradeoff">
+      <div class="callout-label">Lesson</div>
+      A pipeline that feeds its own output back in as the next run's input needs its checks on that
+      fed-back state, not just on the numbers it prints. Each run looked locally reasonable, a 6%
+      shrink and 2 valid clusters, and the problem only showed up across hundreds of runs. If I were
+      starting again I would track a handful of distributional metrics over time (spread, largest
+      cluster share, noise rate) from day one, rather than pass/fail counts on each run.
+    </div>
+  </div>
+
+  <!-- 6. Known limitations -->
   <div class="section">
     <h2>Known Limitations and Honest Tradeoffs</h2>
 
@@ -526,7 +639,7 @@
     </div>
   </div>
 
-  <!-- 6. Stack -->
+  <!-- 7. Stack -->
   <div class="section">
     <h2>Full Stack</h2>
 
@@ -537,9 +650,9 @@
       <tbody>
         <tr><td>Embedding</td><td><code>sentence-transformers</code>, all-MiniLM-L6-v2</td></tr>
         <tr><td>Dimensionality reduction</td><td><code>umap-learn</code> 0.5.6, cosine metric, 3 components</td></tr>
-        <tr><td>Clustering</td><td><code>hdbscan</code> 0.8.33, EOM selection, corpus-fraction min_size</td></tr>
+        <tr><td>Clustering</td><td><code>hdbscan</code> 0.8.33, EOM selection, corpus-fraction min and max cluster size</td></tr>
         <tr><td>Topic labelling</td><td>c-TF-IDF via <code>sklearn</code> CountVectorizer + substring dedup</td></tr>
-        <tr><td>Layout alignment</td><td>Orthogonal Procrustes (reflection permitted) via <code>numpy</code> SVD</td></tr>
+        <tr><td>Layout alignment</td><td>Orthogonal Procrustes (rotation + translation, no scaling) via <code>numpy</code> SVD</td></tr>
         <tr><td>RSS parsing</td><td><code>feedparser</code> 6.0.11</td></tr>
         <tr><td>Email API</td><td>Resend HTTP API via <code>requests</code></td></tr>
         <tr><td>Visualization</td><td>Three.js r128, OrbitControls, canvas sprite texture</td></tr>
