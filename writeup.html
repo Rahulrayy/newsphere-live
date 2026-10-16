@@ -443,13 +443,13 @@
         </tr>
         <tr>
           <td>Email delivery</td>
-          <td>Resend (free tier)</td>
-          <td class="cost-free">€0 / 100 emails/day</td>
-          <td>Raw Gmail SMTP: app passwords deprecated, lands in spam</td>
+          <td>Brevo (free tier)</td>
+          <td class="cost-free">€0 / 300 emails/day</td>
+          <td>Raw Gmail SMTP: app passwords deprecated, lands in spam. Resend was the first choice but needs a verified domain to email anyone other than yourself</td>
         </tr>
         <tr>
           <td>Subscriber storage</td>
-          <td>Resend Audiences</td>
+          <td>Brevo Contacts</td>
           <td class="cost-free">€0</td>
           <td>Avoids storing email addresses in a public repository entirely</td>
         </tr>
@@ -463,7 +463,7 @@
           <td>Subscribe endpoint</td>
           <td>Cloudflare Workers (free tier)</td>
           <td class="cost-free">€0 / 100K req/day</td>
-          <td>Required to keep the Resend API key off the client; no other serverless option at zero cost</td>
+          <td>Required to keep the Brevo API key off the client; no other serverless option at zero cost</td>
         </tr>
         <tr class="cost-total">
           <td colspan="2"><strong>Total monthly cost</strong></td>
@@ -474,10 +474,12 @@
     </table>
 
     <p>
-      The Cloudflare Worker deserves elaboration. Resend's key permission model offers only
-      <code>full_access</code> or <code>sending_access</code>. There is no "write contacts only" scope.
-      This means no Resend key is safe to embed in client-side JavaScript on a public page.
-      The Worker holds the key as a server-side secret and is CORS-locked to the GitHub Pages origin.
+      The Cloudflare Worker deserves elaboration. Brevo API keys are account-wide: there is no
+      "add contacts only" scope, so the same key that lets the subscribe form add an address could
+      also read the whole contact list or send email from the account. That means no Brevo key is
+      safe to embed in client-side JavaScript on a public page. The Worker holds the key as a
+      server-side secret, only calls the create-contact endpoint, and is CORS-locked to the GitHub
+      Pages origin.
       An invisible honeypot field and a 3-second per-tab rate limit in the browser sit in front of it
       as additional abuse-mitigation layers.
     </p>
@@ -617,9 +619,10 @@
 
     <div class="callout tradeoff">
       <div class="callout-label">Tradeoff</div>
-      <strong>Resend free tier scales to 100 subscribers.</strong> The digest sends to each subscriber
-      individually, so the free tier supports up to 100 subscribers before a paid plan is needed.
-      At current scale this is not a constraint.
+      <strong>Brevo free tier caps out around 300 subscribers.</strong> The digest is sent to each
+      subscriber individually, once a day, and the free tier allows 300 emails per day, so a few
+      hundred subscribers is the ceiling before a paid plan is needed (slightly less in practice,
+      since pipeline failure alerts come out of the same quota). At current scale this is not a constraint.
     </div>
 
     <div class="callout tradeoff">
@@ -654,7 +657,7 @@
         <tr><td>Topic labelling</td><td>c-TF-IDF via <code>sklearn</code> CountVectorizer + substring dedup</td></tr>
         <tr><td>Layout alignment</td><td>Orthogonal Procrustes (rotation + translation, no scaling) via <code>numpy</code> SVD</td></tr>
         <tr><td>RSS parsing</td><td><code>feedparser</code> 6.0.11</td></tr>
-        <tr><td>Email API</td><td>Resend HTTP API via <code>requests</code></td></tr>
+        <tr><td>Email API</td><td>Brevo transactional email + contacts API via <code>requests</code></td></tr>
         <tr><td>Visualization</td><td>Three.js r128, OrbitControls, canvas sprite texture</td></tr>
         <tr><td>Subscribe endpoint</td><td>Cloudflare Worker (JavaScript), Wrangler deploy</td></tr>
         <tr><td>Abuse protection</td><td>Honeypot field + browser-side rate limit</td></tr>
